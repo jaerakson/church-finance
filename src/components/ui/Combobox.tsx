@@ -48,9 +48,12 @@ export default function Combobox({
   }, [])
 
   const trimmed = query.trim()
-  const filtered = trimmed ? options.filter((o) => o.label.includes(query)) : options
+  // 이미 선택된 값을 그대로 표시 중일 때는 필터링하지 않고 전체 목록을 보여준다
+  // (그래야 선택 후에도 ↓ 키로 다른 항목으로 바꿀 수 있다)
+  const showingSelected = selected != null && query === selected.label
+  const filtered = (trimmed && !showingSelected) ? options.filter((o) => o.label.includes(query)) : options
   const hasExact = options.some((o) => o.label === trimmed)
-  const showCreate = Boolean(onCreateNew && trimmed && !hasExact)
+  const showCreate = Boolean(onCreateNew && trimmed && !showingSelected && !hasExact)
   const itemCount = filtered.length + (showCreate ? 1 : 0)
 
   // 입력/열림 변화 시 첫 항목을 활성화 → Enter로 최상단 일치 항목 바로 선택

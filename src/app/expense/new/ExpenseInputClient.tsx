@@ -31,8 +31,10 @@ export default function ExpenseInputClient() {
   // 키보드 연속 입력용 포커스 제어
   const descRef = useRef<HTMLInputElement | null>(null)
   const amountRef = useRef<HTMLInputElement | null>(null)
+  const noteRef = useRef<HTMLInputElement | null>(null)
   const focusDesc = () => setTimeout(() => descRef.current?.focus(), 0)
   const focusAmount = () => setTimeout(() => amountRef.current?.focus(), 0)
+  const focusNote = () => setTimeout(() => noteRef.current?.focus(), 0)
 
   const fetchMonth = useCallback(async () => {
     const month = date.slice(0, 7)
@@ -127,22 +129,24 @@ export default function ExpenseInputClient() {
             />
           </Field>
 
-          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 저장">
+          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 비고로 이동">
             <AmountInput
               value={amount}
               onChange={setAmount}
               suggestions={suggestions}
               inputRef={amountRef}
+              onEnter={focusNote}
               accent="rose"
               placeholder="0"
             />
           </Field>
 
-          <Field label="비고">
+          <Field label="비고" hint="↓ 로 선택 · Enter 로 저장">
             <SuggestInput
               value={note}
               onChange={setNote}
               suggestions={noteSuggestions}
+              inputRef={noteRef}
               placeholder="메모 (선택)"
               accent="rose"
             />

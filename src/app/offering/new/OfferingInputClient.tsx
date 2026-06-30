@@ -45,8 +45,10 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   // 키보드 연속 입력용 포커스 제어
   const memberInputRef = useRef<HTMLInputElement | null>(null)
   const amountRef = useRef<HTMLInputElement | null>(null)
+  const noteRef = useRef<HTMLInputElement | null>(null)
   const focusMember = () => setTimeout(() => memberInputRef.current?.focus(), 0)
   const focusAmount = () => setTimeout(() => amountRef.current?.focus(), 0)
+  const focusNote = () => setTimeout(() => noteRef.current?.focus(), 0)
 
   // 수정 모드 상태
   const [editingRow, setEditingRow] = useState<number | null>(null)
@@ -288,21 +290,23 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
             </div>
           )}
 
-          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 저장">
+          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 비고로 이동">
             <AmountInput
               value={amount}
               onChange={setAmount}
               suggestions={suggestions}
               inputRef={amountRef}
+              onEnter={focusNote}
               placeholder="0"
             />
           </Field>
 
-          <Field label="비고" hint={personalized ? '이 교인의 과거 비고에서 선택하거나 직접 입력' : undefined}>
+          <Field label="비고" hint="↓ 로 선택 · Enter 로 저장">
             <SuggestInput
               value={note}
               onChange={setNote}
               suggestions={noteSuggestions}
+              inputRef={noteRef}
               placeholder="메모 (선택)"
             />
           </Field>

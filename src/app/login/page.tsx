@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 
 function LoginForm() {
-  const router = useRouter()
   const params = useSearchParams()
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -22,13 +21,14 @@ function LoginForm() {
       })
       const json = await res.json()
       if (json.success) {
-        router.push(params.get('from') || '/')
-      } else {
-        setError('비밀번호가 올바르지 않습니다.')
+        // 전체 페이지 이동으로 방금 설정된 쿠키가 확실히 전송되게 함 (모바일 라우터 race 방지)
+        window.location.assign(params.get('from') || '/')
+        return // 이동 중 로딩 상태 유지
       }
+      setError('비밀번호가 올바르지 않습니다.')
+      setLoading(false)
     } catch {
       setError('서버 오류가 발생했습니다.')
-    } finally {
       setLoading(false)
     }
   }
