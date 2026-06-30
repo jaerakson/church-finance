@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Expense } from '@/lib/types'
 import { EXPENSE_TYPES, lookupName } from '@/lib/constants'
-import { today, currentYear, currentMonth } from '@/lib/date'
+import { today, currentMonth } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
+import SuggestInput from '@/components/ui/SuggestInput'
+import AmountInput from '@/components/ui/AmountInput'
 
 const typeOptions: ComboOption[] = EXPENSE_TYPES.map((t) => ({ value: t.key, label: t.name }))
 
@@ -19,10 +21,18 @@ export default function ExpenseInputClient() {
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [suggestions, setSuggestions] = useState<{ amount: string; count: number }[]>([])
+  const [descSuggestions, setDescSuggestions] = useState<string[]>([])
+  const [noteSuggestions, setNoteSuggestions] = useState<string[]>([])
   const [monthList, setMonthList] = useState<Expense[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // 키보드 연속 입력용 포커스 제어
+  const descRef = useRef<HTMLInputElement | null>(null)
+  const amountRef = useRef<HTMLInputElement | null>(null)
+  const focusDesc = () => setTimeout(() => descRef.current?.focus(), 0)
+  const focusAmount = () => setTimeout(() => amountRef.current?.focus(), 0)
 
   const fetchMonth = useCallback(async () => {
     const month = date.slice(0, 7)
@@ -36,11 +46,16 @@ export default function ExpenseInputClient() {
   useEffect(() => { fetchMonth() }, [fetchMonth])
 
   useEffect(() => {
-    if (!typeKey) { setSuggestions([]); return }
-    const year = date.slice(0, 4) || currentYear()
-    fetch(`/api/stats/amounts?typeKey=${typeKey}&year=${year}&kind=expense`)
+    if (!typeKey) { setSuggestions([]); setDescSuggestions([]); setNoteSuggestions([]); return }
+    fetch(`/api/stats/amounts?typeKey=${typeKey}&asOf=${date}&kind=expense`)
       .then((r) => r.json())
-      .then((j) => { if (j.success) setSuggestions(j.data) })
+      .then((j) => {
+        if (j.success) {
+          setSuggestions(j.data ?? [])
+          setDescSuggestions(j.descriptions ?? [])
+          setNoteSuggestions(j.notes ?? [])
+        }
+      })
       .catch(() => {})
   }, [typeKey, date])
 
@@ -58,12 +73,13 @@ export default function ExpenseInputClient() {
       })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
-      setTypeKey('')
+      // 지출 종류는 고정 → 같은 종류로 연속 입력
       setDescription('')
       setAmount('')
       setNote('')
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)
+      focusDesc()
       await fetchMonth()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
@@ -89,61 +105,47 @@ export default function ExpenseInputClient() {
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
           </Field>
 
-          <Field label="지출 종류">
+          <Field label="지출 종류" hint="한 번 고르면 연속 입력 동안 고정됩니다">
             <Combobox
               options={typeOptions}
               value={typeKey}
               onChange={setTypeKey}
+              onSelected={focusDesc}
               placeholder="지출 종류 검색..."
             />
           </Field>
 
-          <Field label="내역">
-            <input
+          <Field label="내역" hint={typeKey ? '과거 내역 선택/직접입력 → Enter' : undefined}>
+            <SuggestInput
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={setDescription}
+              suggestions={descSuggestions}
               placeholder="예: 담임목사 사례비"
-              className={inputCls}
+              accent="rose"
+              inputRef={descRef}
+              onEnter={focusAmount}
             />
           </Field>
 
-          {/* 금액 제안 */}
-          {suggestions.length > 0 && (
-            <div>
-              <p className="text-xs text-gray-400 mb-1.5">올해 자주 입력한 금액</p>
-              <div className="flex flex-wrap gap-2">
-                {suggestions.map((s) => (
-                  <button
-                    key={s.amount}
-                    type="button"
-                    onClick={() => setAmount(s.amount)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                      amount === s.amount
-                        ? 'bg-rose-600 text-white border-rose-600'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-rose-300 hover:text-rose-600'
-                    }`}
-                  >
-                    {Number(s.amount).toLocaleString()}원
-                    <span className="ml-1 text-[10px] opacity-60">×{s.count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <Field label="금액 (원)">
-            <input
-              type="number"
+          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 저장">
+            <AmountInput
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
+              suggestions={suggestions}
+              inputRef={amountRef}
+              accent="rose"
               placeholder="0"
-              className={inputCls}
-              min="0"
             />
           </Field>
 
           <Field label="비고">
-            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="메모 (선택)" className={inputCls} />
+            <SuggestInput
+              value={note}
+              onChange={setNote}
+              suggestions={noteSuggestions}
+              placeholder="메모 (선택)"
+              accent="rose"
+            />
           </Field>
 
           <button
@@ -192,10 +194,13 @@ export default function ExpenseInputClient() {
 
 const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white'
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700">
+        {label}
+        {hint && <span className="ml-1 text-xs text-gray-400 font-normal">{hint}</span>}
+      </label>
       {children}
     </div>
   )

@@ -15,8 +15,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body: MemberFormData = await request.json()
-    await addMember(body)
-    return NextResponse.json({ success: true, data: null }, { status: 201 })
+    const member = await addMember(body)
+    return NextResponse.json({ success: true, data: member }, { status: 201 })
   } catch (e) {
     console.error('[POST /api/members]', e)
     return NextResponse.json({ success: false, error: '저장에 실패했습니다.' }, { status: 500 })

@@ -71,12 +71,25 @@ export async function getMember(rowIndex: number): Promise<Member | null> {
   return rowToMember(rows[0], rowIndex)
 }
 
-export async function addMember(data: MemberFormData): Promise<void> {
+export async function addMember(data: MemberFormData): Promise<Member> {
   const rows = await getRange(SHEETS.MEMBER, 'A2:A')
   const maxKey = rows.reduce((max, r) => Math.max(max, Number(r[0]) || 0), 0)
   const newKey = String(maxKey + 1)
   const row = [newKey, data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt]
   await appendRow(SHEETS.MEMBER, row)
+  // rowIndex는 추정치 (선택은 key 기준이라 이 흐름에서는 사용되지 않음)
+  return {
+    rowIndex: rows.length + 2,
+    key: newKey,
+    name: data.name,
+    departmentKey: data.departmentKey,
+    positionKey: data.positionKey,
+    phone: data.phone,
+    email: data.email,
+    address: data.address,
+    registeredAt: data.registeredAt,
+    baptizedAt: data.baptizedAt,
+  }
 }
 
 export async function updateMember(rowIndex: number, data: MemberFormData): Promise<void> {

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Member, Offering } from '@/lib/types'
 import { OFFERING_TYPES, lookupName } from '@/lib/constants'
-import { today, currentYear, formatDateKo } from '@/lib/date'
+import { today, formatDateKo } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
+import SuggestInput from '@/components/ui/SuggestInput'
+import AmountInput from '@/components/ui/AmountInput'
 
 interface Props {
   members: Member[]
@@ -19,7 +21,8 @@ function parseAmount(v: string) {
   return Number(v.replace(/,/g, '')) || 0
 }
 
-export default function OfferingInputClient({ members }: Props) {
+export default function OfferingInputClient({ members: initialMembers }: Props) {
+  const [members, setMembers] = useState<Member[]>(initialMembers)
   const memberOptions: ComboOption[] = members.map((m) => ({ value: m.key, label: m.name }))
   const typeOptions: ComboOption[] = OFFERING_TYPES.map((t) => ({ value: t.key, label: t.name }))
   const memberMap = Object.fromEntries(members.map((m) => [m.key, m.name]))
@@ -27,19 +30,29 @@ export default function OfferingInputClient({ members }: Props) {
   const [date, setDate] = useState(today())
   const [typeKey, setTypeKey] = useState('')
   const [memberKey, setMemberKey] = useState('')
+  const [memberQuery, setMemberQuery] = useState('')
+  const [creatingMember, setCreatingMember] = useState(false)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [suggestions, setSuggestions] = useState<{ amount: string; count: number }[]>([])
+  const [noteSuggestions, setNoteSuggestions] = useState<string[]>([])
   const [recent, setRecent] = useState<RecentEntry[]>([])
   const [todayList, setTodayList] = useState<Offering[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // 키보드 연속 입력용 포커스 제어
+  const memberInputRef = useRef<HTMLInputElement | null>(null)
+  const amountRef = useRef<HTMLInputElement | null>(null)
+  const focusMember = () => setTimeout(() => memberInputRef.current?.focus(), 0)
+  const focusAmount = () => setTimeout(() => amountRef.current?.focus(), 0)
+
   // 수정 모드 상태
   const [editingRow, setEditingRow] = useState<number | null>(null)
   const [editAmount, setEditAmount] = useState('')
   const [editNote, setEditNote] = useState('')
+  const [confirmingRow, setConfirmingRow] = useState<number | null>(null)
 
   const fetchToday = useCallback(async () => {
     try {
@@ -53,15 +66,15 @@ export default function OfferingInputClient({ members }: Props) {
 
   // 개인화 제안: 종류 + 교인 둘 다 선택돼야 호출
   useEffect(() => {
-    if (!typeKey || !memberKey) { setSuggestions([]); setRecent([]); return }
-    const year = date.slice(0, 4) || currentYear()
-    const url = `/api/stats/amounts?typeKey=${typeKey}&memberKey=${memberKey}&year=${year}&kind=offering`
+    if (!typeKey || !memberKey) { setSuggestions([]); setRecent([]); setNoteSuggestions([]); return }
+    const url = `/api/stats/amounts?typeKey=${typeKey}&memberKey=${memberKey}&asOf=${date}&kind=offering`
     fetch(url)
       .then((r) => r.json())
       .then((j) => {
         if (j.success) {
           setSuggestions(j.data ?? [])
           setRecent(j.recent ?? [])
+          setNoteSuggestions(j.notes ?? [])
         }
       })
       .catch(() => {})
@@ -74,6 +87,7 @@ export default function OfferingInputClient({ members }: Props) {
 
   const memberName = members.find((m) => m.key === memberKey)?.name ?? ''
   const personalized = Boolean(typeKey && memberKey)
+  const showMemberMissing = Boolean(memberQuery.trim() && !memberKey && !members.some((m) => m.name === memberQuery.trim()))
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,10 +104,12 @@ export default function OfferingInputClient({ members }: Props) {
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
       setMemberKey('')
+      setMemberQuery('')
       setAmount('')
       setNote('')
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)
+      focusMember() // 같은 종류로 다음 사람 연속 입력
       await fetchToday()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
@@ -102,7 +118,38 @@ export default function OfferingInputClient({ members }: Props) {
     }
   }
 
+  // 교인이 없을 때 즉시 등록 (이름만) → 자동 선택
+  const handleCreateMember = async (name: string) => {
+    const trimmed = name.trim()
+    if (!trimmed || creatingMember) return
+    setCreatingMember(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: trimmed,
+          departmentKey: '', positionKey: '', phone: '', email: '', address: '',
+          registeredAt: today(), baptizedAt: '',
+        }),
+      })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error)
+      const created = json.data as Member
+      setMembers((prev) => [...prev, created])
+      setMemberKey(created.key)
+      setMemberQuery(created.name)
+      focusAmount() // 등록 직후 바로 금액 입력
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '교인 등록에 실패했습니다.')
+    } finally {
+      setCreatingMember(false)
+    }
+  }
+
   const startEdit = (o: Offering) => {
+    setConfirmingRow(null)
     setEditingRow(o.rowIndex)
     setEditAmount(o.amount.replace(/,/g, '').trim())
     setEditNote(o.note ?? '')
@@ -138,12 +185,12 @@ export default function OfferingInputClient({ members }: Props) {
   }
 
   const removeEntry = async (o: Offering) => {
-    if (!confirm(`${memberMap[o.memberKey] ?? o.memberKey}님의 ${lookupName(OFFERING_TYPES, o.typeKey)} ${parseAmount(o.amount).toLocaleString()}원을 삭제할까요?`)) return
     setError(null)
     try {
       const res = await fetch(`/api/offering/${o.rowIndex}`, { method: 'DELETE' })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
+      setConfirmingRow(null)
       await fetchToday()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '삭제에 실패했습니다.')
@@ -177,59 +224,53 @@ export default function OfferingInputClient({ members }: Props) {
             />
           </Field>
 
-          <Field label="헌금 종류">
+          <Field label="헌금 종류" hint="한 번 고르면 연속 입력 동안 고정됩니다">
             <Combobox
               options={typeOptions}
               value={typeKey}
               onChange={setTypeKey}
+              onSelected={focusMember}
               placeholder="헌금 종류 선택..."
             />
           </Field>
 
-          <Field label="교인 이름" hint="이름을 입력하면 목록이 나타납니다">
+          <Field label="교인 이름" hint="이름 입력 → Enter → 금액 → Enter 로 빠르게">
             <Combobox
               options={memberOptions}
               value={memberKey}
               onChange={setMemberKey}
+              onQueryChange={setMemberQuery}
+              onCreateNew={handleCreateMember}
+              createLabel={(q) => `+ "${q}" 새 교인으로 바로 등록`}
+              inputRef={memberInputRef}
+              onSelected={focusAmount}
               placeholder="이름 검색..."
             />
+            {showMemberMissing && (
+              <div className="mt-2 flex items-center justify-between gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <span className="text-xs text-amber-700">
+                  &lsquo;{memberQuery.trim()}&rsquo; 교인이 없습니다.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleCreateMember(memberQuery)}
+                  disabled={creatingMember}
+                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-md text-xs font-medium whitespace-nowrap transition-colors"
+                >
+                  {creatingMember ? '등록 중...' : '바로 등록'}
+                </button>
+              </div>
+            )}
           </Field>
 
-          {/* 개인화 영역: 종류 + 교인 모두 선택 시 */}
+          {/* 개인화 영역: 종류 + 교인 모두 선택 시 (비교용) */}
           {personalized && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 space-y-3">
+            <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 space-y-2">
               <p className="text-xs font-semibold text-blue-700">
-                👤 {memberName}님 · {lookupName(OFFERING_TYPES, typeKey)} 개인 기록 (올해)
+                👤 {memberName}님 · {lookupName(OFFERING_TYPES, typeKey)} 개인 기록 (최근 1년)
               </p>
 
-              {/* 자주 입력한 금액 */}
-              {suggestions.length > 0 ? (
-                <div>
-                  <p className="text-[11px] text-gray-500 mb-1.5">자주 입력한 금액</p>
-                  <div className="flex flex-wrap gap-2">
-                    {suggestions.map((s) => (
-                      <button
-                        key={s.amount}
-                        type="button"
-                        onClick={() => setAmount(s.amount)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                          amount === s.amount
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'
-                        }`}
-                      >
-                        {Number(s.amount).toLocaleString()}원
-                        <span className="ml-1 text-[10px] opacity-60">×{s.count}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[11px] text-gray-400">올해 이 헌금 기록이 없습니다. (첫 입력)</p>
-              )}
-
-              {/* 비교 목록: 최근 입력 내역 */}
-              {recent.length > 0 && (
+              {recent.length > 0 ? (
                 <div>
                   <p className="text-[11px] text-gray-500 mb-1.5">최근 입력 내역 (비교용)</p>
                   <ul className="space-y-1">
@@ -241,27 +282,28 @@ export default function OfferingInputClient({ members }: Props) {
                     ))}
                   </ul>
                 </div>
+              ) : (
+                <p className="text-[11px] text-gray-400">최근 1년 이 헌금 기록이 없습니다. (첫 입력)</p>
               )}
             </div>
           )}
 
-          <Field label="금액 (원)">
-            <input
-              type="number"
+          <Field label="금액 (원)" hint="↓ 로 최근 금액 선택 · Enter 로 저장">
+            <AmountInput
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={setAmount}
+              suggestions={suggestions}
+              inputRef={amountRef}
               placeholder="0"
-              className={inputCls}
-              min="0"
             />
           </Field>
 
-          <Field label="비고">
-            <input
+          <Field label="비고" hint={personalized ? '이 교인의 과거 비고에서 선택하거나 직접 입력' : undefined}>
+            <SuggestInput
               value={note}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={setNote}
+              suggestions={noteSuggestions}
               placeholder="메모 (선택)"
-              className={inputCls}
             />
           </Field>
 
@@ -320,12 +362,12 @@ export default function OfferingInputClient({ members }: Props) {
                         <span className="ml-1.5 text-xs text-gray-400">{lookupName(OFFERING_TYPES, o.typeKey)}</span>
                       </p>
                       <input
-                        type="number"
-                        value={editAmount}
-                        onChange={(e) => setEditAmount(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        type="text"
+                        inputMode="numeric"
+                        value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
+                        onChange={(e) => setEditAmount(e.target.value.replace(/[^\d]/g, ''))}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="금액"
-                        min="0"
                       />
                       <input
                         value={editNote}
@@ -350,6 +392,22 @@ export default function OfferingInputClient({ members }: Props) {
                         </button>
                       </div>
                     </div>
+                  ) : confirmingRow === o.rowIndex ? (
+                    <div className="flex items-center justify-between gap-2 bg-rose-50 rounded-lg px-2 py-1.5">
+                      <span className="text-xs text-rose-700 min-w-0 truncate">{memberMap[o.memberKey] ?? o.memberKey} 삭제할까요?</span>
+                      <span className="flex items-center gap-1.5 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => removeEntry(o)}
+                          className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-xs font-medium transition-colors"
+                        >삭제</button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingRow(null)}
+                          className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                        >취소</button>
+                      </span>
+                    </div>
                   ) : (
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
@@ -366,7 +424,7 @@ export default function OfferingInputClient({ members }: Props) {
                         >✏️</button>
                         <button
                           type="button"
-                          onClick={() => removeEntry(o)}
+                          onClick={() => { setEditingRow(null); setError(null); setConfirmingRow(o.rowIndex) }}
                           className="p-1 text-gray-300 hover:text-rose-500 transition-colors"
                           title="삭제"
                         >🗑️</button>
