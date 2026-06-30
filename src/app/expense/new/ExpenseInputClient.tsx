@@ -5,7 +5,7 @@ import { Expense } from '@/lib/types'
 import { EXPENSE_TYPES, lookupName } from '@/lib/constants'
 import { today, currentMonth } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
-import SuggestInput from '@/components/ui/SuggestInput'
+import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
 import AmountInput from '@/components/ui/AmountInput'
 
 const typeOptions: ComboOption[] = EXPENSE_TYPES.map((t) => ({ value: t.key, label: t.name }))
@@ -21,8 +21,8 @@ export default function ExpenseInputClient() {
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [suggestions, setSuggestions] = useState<{ amount: string; count: number }[]>([])
-  const [descSuggestions, setDescSuggestions] = useState<string[]>([])
-  const [noteSuggestions, setNoteSuggestions] = useState<string[]>([])
+  const [descSuggestions, setDescSuggestions] = useState<Suggestion[]>([])
+  const [noteSuggestions, setNoteSuggestions] = useState<Suggestion[]>([])
   const [monthList, setMonthList] = useState<Expense[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

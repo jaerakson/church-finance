@@ -5,7 +5,7 @@ import { Member, Offering } from '@/lib/types'
 import { OFFERING_TYPES, lookupName } from '@/lib/constants'
 import { today, formatDateKo } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
-import SuggestInput from '@/components/ui/SuggestInput'
+import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
 import AmountInput from '@/components/ui/AmountInput'
 
 interface Props {
@@ -35,7 +35,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
   const [suggestions, setSuggestions] = useState<{ amount: string; count: number }[]>([])
-  const [noteSuggestions, setNoteSuggestions] = useState<string[]>([])
+  const [noteSuggestions, setNoteSuggestions] = useState<Suggestion[]>([])
   const [recent, setRecent] = useState<RecentEntry[]>([])
   const [todayList, setTodayList] = useState<Offering[]>([])
   const [loading, setLoading] = useState(false)

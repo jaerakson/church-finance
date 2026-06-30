@@ -11,7 +11,8 @@ type Row = {
   description?: string
 }
 
-function topStrings(values: string[], limit = 8): string[] {
+// 빈도순 상위 N개를 {value, count} 형태로 (금액 제안과 동일한 구조)
+function topCounted(values: string[], limit = 8): { value: string; count: number }[] {
   const counts: Record<string, number> = {}
   for (const v of values) {
     const t = v?.trim()
@@ -20,7 +21,7 @@ function topStrings(values: string[], limit = 8): string[] {
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, limit)
-    .map(([s]) => s)
+    .map(([value, count]) => ({ value, count }))
 }
 
 export async function GET(request: Request) {
@@ -70,9 +71,9 @@ export async function GET(request: Request) {
       .slice(0, 5)
       .map((item) => ({ date: item.date, amount: item.amount.replace(/,/g, '').trim() }))
 
-    // 내역(지출 전용)·비고 제안 — 전체 기간 빈도순
-    const descriptions = topStrings(typeScoped.map((i) => i.description ?? ''))
-    const notes = topStrings(typeScoped.map((i) => i.note ?? ''))
+    // 내역(지출 전용)·비고 제안 — 금액과 동일하게 "최근 1년" 기준 + 횟수 포함
+    const descriptions = topCounted(windowScoped.map((i) => i.description ?? ''))
+    const notes = topCounted(windowScoped.map((i) => i.note ?? ''))
 
     return NextResponse.json({ success: true, data, recent, descriptions, notes })
   } catch (e) {
