@@ -75,3 +75,4 @@
 | 2026-06-30 | 자유입력형 제안(SuggestInput) 추가 — 지출 내역·비고, 헌금 비고를 과거값 선택+직접입력 구조로 / 헌금 입력 교인 미존재 시 인라인 즉시 등록(이름만, 자동 선택) / 통계 API에 descriptions·notes 추가 |
 | 2026-06-30 | 키보드 연속 입력 — 종류 고정 후 [이름 Enter → 금액 Enter 저장 → 자동으로 다음 사람] 루프. Combobox/SuggestInput에 방향키·Enter 선택·포커스 이동(onSelected/onEnter) 추가. 지출도 동일(종류 고정). 헌금 입력 "오늘의 내역" 삭제를 네이티브 confirm → 인라인 확인으로 통일 |
 | 2026-06-30 | 금액 입력을 칩(클릭) → 드롭다운(AmountInput)으로 변경 — 콤마 표시 + ↓/Enter 키보드 선택. 금액 빈도 기준을 "올해" → "최근 1년"(롤링 12개월, stats API `asOf` 파라미터)으로 변경 |
+| 2026-06-30 | 메모(비고)·내역도 금액과 동일하게 — SuggestInput 드롭다운에 "최근 N회" 횟수 배지 표시, 제안 기준을 전체 기간 → "최근 1년"(windowScoped)으로 통일. stats API의 descriptions·notes를 {value,count} 구조로 변경 |

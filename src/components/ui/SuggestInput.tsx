@@ -2,10 +2,15 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react'
 
+export interface Suggestion {
+  value: string
+  count?: number
+}
+
 interface Props {
   value: string
   onChange: (value: string) => void
-  suggestions: string[]
+  suggestions: Suggestion[]
   placeholder?: string
   accent?: 'blue' | 'rose'
   /** 외부에서 input 포커스를 제어하기 위한 ref */
@@ -33,7 +38,7 @@ export default function SuggestInput({ value, onChange, suggestions, placeholder
   }, [])
 
   const q = value.trim()
-  const filtered = (q ? suggestions.filter((s) => s.includes(q)) : suggestions).filter((s) => s !== value)
+  const filtered = (q ? suggestions.filter((s) => s.value.includes(q)) : suggestions).filter((s) => s.value !== value)
   const ring = accent === 'rose' ? 'focus:ring-rose-500' : 'focus:ring-blue-500'
   const hover = accent === 'rose' ? 'hover:bg-rose-50' : 'hover:bg-blue-50'
   const active = accent === 'rose' ? 'bg-rose-100' : 'bg-blue-100'
@@ -49,7 +54,7 @@ export default function SuggestInput({ value, onChange, suggestions, placeholder
       const picking = open && activeIndex >= 0 && activeIndex < filtered.length
       if (picking) {
         e.preventDefault()
-        onChange(filtered[activeIndex])
+        onChange(filtered[activeIndex].value)
         setOpen(false)
         onEnter?.()
       } else if (onEnter) {
@@ -83,12 +88,13 @@ export default function SuggestInput({ value, onChange, suggestions, placeholder
         <ul className="absolute z-20 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
           {filtered.map((s, idx) => (
             <li
-              key={s}
-              onMouseDown={(e) => { e.preventDefault(); onChange(s); setOpen(false); onEnter?.() }}
+              key={s.value}
+              onMouseDown={(e) => { e.preventDefault(); onChange(s.value); setOpen(false); onEnter?.() }}
               onMouseEnter={() => setActiveIndex(idx)}
-              className={`px-3 py-2.5 cursor-pointer transition-colors text-gray-800 ${idx === activeIndex ? active : hover}`}
+              className={`flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer transition-colors text-gray-800 ${idx === activeIndex ? active : hover}`}
             >
-              {s}
+              <span className="truncate">{s.value}</span>
+              {s.count != null && <span className="text-[10px] text-gray-400 whitespace-nowrap">최근 {s.count}회</span>}
             </li>
           ))}
         </ul>
