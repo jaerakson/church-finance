@@ -82,7 +82,13 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
       .catch(() => {})
   }, [typeKey, memberKey, date])
 
-  const isDuplicate = Boolean(
+  // 완전 일치(날짜+교인+종류+금액) → 저장 차단
+  const isExactDuplicate = Boolean(
+    memberKey && typeKey && amount &&
+    todayList.some((o) => o.memberKey === memberKey && o.typeKey === typeKey && o.date === date && parseAmount(o.amount) === parseAmount(amount))
+  )
+  // 날짜+교인+종류 일치(금액만 다름) → 안내(허용)
+  const isSoftDuplicate = !isExactDuplicate && Boolean(
     memberKey && typeKey &&
     todayList.some((o) => o.memberKey === memberKey && o.typeKey === typeKey && o.date === date)
   )
@@ -94,6 +100,10 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!memberKey || !typeKey || !amount) return
+    if (isExactDuplicate) {
+      setError('이미 동일한 헌금 내역이 입력되어 있어 저장할 수 없습니다. (중복)')
+      return
+    }
     setLoading(true)
     setError(null)
     setSuccess(false)
@@ -311,19 +321,25 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
             />
           </Field>
 
-          {/* 중복 경고 */}
-          {isDuplicate && (
+          {/* 중복 차단 (완전 일치) */}
+          {isExactDuplicate && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 text-sm font-medium">
+              🚫 <strong>{memberName}</strong>님의 <strong>{lookupName(OFFERING_TYPES, typeKey)}</strong> {parseAmount(amount).toLocaleString()}원이 이미 입력되어 있습니다. <strong>중복이라 저장할 수 없습니다.</strong>
+            </div>
+          )}
+          {/* 중복 안내 (금액만 다름 — 허용) */}
+          {isSoftDuplicate && (
             <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 text-sm">
-              ⚠️ <strong>{memberName}</strong>님의 <strong>{lookupName(OFFERING_TYPES, typeKey)}</strong> 헌금이 오늘 이미 입력되어 있습니다. 계속 입력할 수 있습니다.
+              ⚠️ <strong>{memberName}</strong>님의 <strong>{lookupName(OFFERING_TYPES, typeKey)}</strong> 헌금이 오늘 이미 있습니다(금액 다름). 확인 후 저장하세요.
             </div>
           )}
 
           <button
             type="submit"
-            disabled={loading || !memberKey || !typeKey || !amount}
+            disabled={loading || !memberKey || !typeKey || !amount || isExactDuplicate}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 text-sm font-semibold transition-colors"
           >
-            {loading ? '저장 중...' : '헌금 입력'}
+            {loading ? '저장 중...' : isExactDuplicate ? '중복 — 저장 불가' : '헌금 입력'}
           </button>
         </form>
       </div>

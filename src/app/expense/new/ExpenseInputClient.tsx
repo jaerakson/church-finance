@@ -61,9 +61,19 @@ export default function ExpenseInputClient() {
       .catch(() => {})
   }, [typeKey, date])
 
+  // 완전 일치(날짜+종류+내역+금액) → 저장 차단
+  const isExactDuplicate = Boolean(
+    typeKey && description && amount &&
+    monthList.some((e) => e.date === date && e.typeKey === typeKey && (e.description ?? '').trim() === description.trim() && parseAmount(e.amount) === parseAmount(amount))
+  )
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!typeKey || !description || !amount) return
+    if (isExactDuplicate) {
+      setError('이미 동일한 지출 내역이 입력되어 있어 저장할 수 없습니다. (중복)')
+      return
+    }
     setLoading(true)
     setError(null)
     setSuccess(false)
@@ -152,12 +162,18 @@ export default function ExpenseInputClient() {
             />
           </Field>
 
+          {isExactDuplicate && (
+            <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 text-sm font-medium">
+              🚫 같은 날짜에 <strong>{description}</strong> {parseAmount(amount).toLocaleString()}원이 이미 입력되어 있습니다. <strong>중복이라 저장할 수 없습니다.</strong>
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={loading || !typeKey || !description || !amount}
+            disabled={loading || !typeKey || !description || !amount || isExactDuplicate}
             className="w-full bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-xl py-3 text-sm font-semibold transition-colors"
           >
-            {loading ? '저장 중...' : '지출 입력'}
+            {loading ? '저장 중...' : isExactDuplicate ? '중복 — 저장 불가' : '지출 입력'}
           </button>
         </form>
       </div>

@@ -12,15 +12,5 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+/* 이 앱은 라이트 테마 전용입니다. 레이아웃의 bg-gray-50 / text-gray-900 와
+   Inter 폰트(className)가 적용되도록 body 강제 스타일은 두지 않습니다. */

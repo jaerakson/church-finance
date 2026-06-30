@@ -34,6 +34,15 @@ const navGroups = [
       { href: '/expense/new',  label: '지출 입력', icon: '✏️' },
     ],
   },
+  {
+    label: '재정 상세',
+    items: [
+      { href: '/finance/offerings', label: '헌금 상세', icon: '📄' },
+      { href: '/finance/expenses',  label: '지출 상세', icon: '📑' },
+      { href: '/finance/members',   label: '성도별 헌금', icon: '🧾' },
+      { href: '/finance/income',    label: '수입재정집계표', icon: '📊' },
+    ],
+  },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
