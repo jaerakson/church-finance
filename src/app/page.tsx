@@ -1,65 +1,149 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { Suspense } from 'react'
+import { getMembers, getOfferings, getExpenses } from '@/lib/google-sheets'
+import { Offering, Expense } from '@/lib/types'
+import { currentYear } from '@/lib/date'
+import YearFilter from '@/components/ui/YearFilter'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+type Props = { searchParams: Promise<{ year?: string }> }
+
+function parseAmount(val: string): number {
+  return Number(val.replace(/,/g, '')) || 0
+}
+
+function buildYearlyStats(offerings: Offering[], expenses: Expense[]) {
+  const map: Record<string, { offering: number; expense: number }> = {}
+  for (const o of offerings) {
+    const year = o.date?.slice(0, 4)
+    if (!year) continue
+    map[year] = map[year] ?? { offering: 0, expense: 0 }
+    map[year].offering += parseAmount(o.amount)
+  }
+  for (const e of expenses) {
+    const year = e.date?.slice(0, 4)
+    if (!year) continue
+    map[year] = map[year] ?? { offering: 0, expense: 0 }
+    map[year].expense += parseAmount(e.amount)
+  }
+  return Object.entries(map)
+    .sort(([a], [b]) => Number(b) - Number(a))
+    .map(([year, { offering, expense }]) => ({ year, offering, expense, balance: offering - expense }))
+}
+
+export default async function DashboardPage({ searchParams }: Props) {
+  const { year } = await searchParams
+  const selectedYear = (!year || year === 'all') ? 'all' : year
+  const defYear = currentYear()
+
+  let members: Awaited<ReturnType<typeof getMembers>> = []
+  let allOfferings: Offering[] = []
+  let allExpenses: Expense[] = []
+  let error = false
+
+  try {
+    ;[members, allOfferings, allExpenses] = await Promise.all([getMembers(), getOfferings(), getExpenses()])
+  } catch {
+    error = true
+  }
+
+  const years = [...new Set([
+    ...allOfferings.map((o) => o.date?.slice(0, 4)),
+    ...allExpenses.map((e) => e.date?.slice(0, 4)),
+  ].filter(Boolean))].sort().reverse() as string[]
+
+  const offerings = selectedYear === 'all' ? allOfferings : allOfferings.filter((o) => o.date?.startsWith(selectedYear))
+  const expenses  = selectedYear === 'all' ? allExpenses  : allExpenses.filter((e)  => e.date?.startsWith(selectedYear))
+
+  const totalOffering = offerings.reduce((s, o) => s + parseAmount(o.amount), 0)
+  const totalExpense  = expenses.reduce((s, e)  => s + parseAmount(e.amount), 0)
+  const yearlyStats   = buildYearlyStats(allOfferings, allExpenses)
+
+  const stats = [
+    { label: '총 교인 수',    value: `${members.length}명`,                               color: 'bg-blue-50 text-blue-700',       icon: '👥' },
+    { label: selectedYear === 'all' ? '누적 헌금' : `${selectedYear}년 헌금`, value: `${totalOffering.toLocaleString()}원`, color: 'bg-emerald-50 text-emerald-700', icon: '💰' },
+    { label: selectedYear === 'all' ? '누적 지출' : `${selectedYear}년 지출`, value: `${totalExpense.toLocaleString()}원`,  color: 'bg-rose-50 text-rose-700',       icon: '📤' },
+    { label: '잔액',          value: `${(totalOffering - totalExpense).toLocaleString()}원`, color: 'bg-amber-50 text-amber-700',     icon: '📊' },
+  ]
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
+          <p className="text-sm text-gray-500 mt-1">검암중앙교회 재정 현황</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <Suspense>
+          <YearFilter years={years.length ? years : [defYear]} />
+        </Suspense>
+      </div>
+
+      {error && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-lg px-4 py-3 text-sm">
+          Google Sheets 데이터를 불러오지 못했습니다. API 연결을 확인해주세요.
         </div>
-      </main>
+      )}
+
+      {/* 통계 카드 */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((s) => (
+          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${s.color} text-xl mb-3`}>
+              {s.icon}
+            </div>
+            <p className="text-xs text-gray-500 font-medium">{s.label}</p>
+            <p className="text-xl font-bold text-gray-900 mt-0.5">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 연도별 통계 */}
+      {yearlyStats.length > 0 && (
+        <div>
+          <h2 className="text-base font-semibold text-gray-800 mb-3">연도별 재정 통계</h2>
+          <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-100">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">연도</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">헌금</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">지출</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">잔액</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {yearlyStats.map((r) => (
+                  <tr key={r.year} className={`hover:bg-gray-50 transition-colors ${r.year === defYear ? 'bg-blue-50' : ''}`}>
+                    <td className="px-4 py-3 font-semibold text-gray-900">{r.year}년{r.year === defYear && <span className="ml-2 text-[10px] text-blue-500 font-normal">올해</span>}</td>
+                    <td className="px-4 py-3 text-right text-emerald-700 font-medium">{r.offering.toLocaleString()}원</td>
+                    <td className="px-4 py-3 text-right text-rose-600 font-medium">{r.expense.toLocaleString()}원</td>
+                    <td className={`px-4 py-3 text-right font-bold ${r.balance >= 0 ? 'text-gray-900' : 'text-rose-600'}`}>
+                      {r.balance.toLocaleString()}원
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 퀵 액션 */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { href: '/members',      label: '교인명부',  icon: '👥', cls: 'bg-white border border-gray-100 text-gray-900' },
+          { href: '/members/new',  label: '교인 등록', icon: '➕', cls: 'bg-blue-600 text-white' },
+          { href: '/offering/new', label: '헌금 입력', icon: '💰', cls: 'bg-emerald-600 text-white' },
+          { href: '/expense/new',  label: '지출 입력', icon: '📤', cls: 'bg-rose-600 text-white' },
+        ].map((a) => (
+          <Link key={a.href} href={a.href}
+            className={`rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow flex flex-col items-center gap-2 text-center ${a.cls}`}>
+            <span className="text-2xl">{a.icon}</span>
+            <span className="text-sm font-semibold">{a.label}</span>
+          </Link>
+        ))}
+      </div>
     </div>
-  );
+  )
 }
