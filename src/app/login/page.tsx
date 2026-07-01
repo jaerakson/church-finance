@@ -9,15 +9,22 @@ function LoginForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    // 모바일 자동완성/IME 로 state 반영이 늦는 경우를 대비해 DOM 값을 직접 읽는다
+    const formPw = (new FormData(e.currentTarget).get('password') as string) ?? ''
+    const pw = (formPw || password).trim()
+    if (!pw) {
+      setError('비밀번호를 입력하세요.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: pw }),
       })
       const json = await res.json()
       if (json.success) {
@@ -47,11 +54,13 @@ function LoginForm() {
               <label className="block text-sm font-medium text-gray-700">비밀번호</label>
               <input
                 type="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
-                autoFocus
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                autoComplete="current-password"
+                enterKeyHint="go"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               />
             </div>
 
@@ -61,8 +70,8 @@ function LoginForm() {
 
             <button
               type="submit"
-              disabled={loading || !password}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl py-3 text-sm font-semibold transition-colors"
+              disabled={loading}
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 text-white rounded-xl py-3.5 text-base font-semibold transition-colors touch-manipulation"
             >
               {loading ? '확인 중...' : '로그인'}
             </button>
