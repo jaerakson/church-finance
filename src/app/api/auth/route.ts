@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { authToken, AUTH_COOKIE } from '@/lib/auth'
 
 export async function POST(request: Request) {
   const { password } = await request.json()
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const res = NextResponse.json({ success: true })
-  res.cookies.set('auth_token', secret, {
+  res.cookies.set(AUTH_COOKIE, await authToken(secret), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -24,6 +25,6 @@ export async function POST(request: Request) {
 
 export async function DELETE() {
   const res = NextResponse.json({ success: true })
-  res.cookies.delete('auth_token')
+  res.cookies.delete(AUTH_COOKIE)
   return res
 }

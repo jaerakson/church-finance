@@ -34,6 +34,7 @@ export default function Combobox({
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
     setQuery(selected?.label ?? '')
@@ -58,6 +59,13 @@ export default function Combobox({
 
   // 입력/열림 변화 시 첫 항목을 활성화 → Enter로 최상단 일치 항목 바로 선택
   useEffect(() => { setActiveIndex(0) }, [query, open])
+
+  // 방향키로 이동하면 강조된 항목이 보이도록 목록을 스크롤
+  useEffect(() => {
+    if (!open) return
+    const el = listRef.current?.children[activeIndex] as HTMLElement | undefined
+    el?.scrollIntoView({ block: 'nearest' })
+  }, [activeIndex, open])
 
   const select = useCallback((opt: ComboOption) => {
     onChange(opt.value)
@@ -100,7 +108,7 @@ export default function Combobox({
         autoComplete="off"
       />
       {open && (filtered.length > 0 || showCreate) && (
-        <ul className="absolute z-20 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
+        <ul ref={listRef} className="absolute z-20 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
           {filtered.map((opt, idx) => (
             <li
               key={opt.value}

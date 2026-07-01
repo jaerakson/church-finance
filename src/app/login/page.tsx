@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 function LoginForm() {
   const params = useSearchParams()
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -52,16 +53,26 @@ function LoginForm() {
           <form onSubmit={onSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">비밀번호</label>
-              <input
-                type="password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력하세요"
-                autoComplete="current-password"
-                enterKeyHint="go"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="비밀번호를 입력하세요"
+                  autoComplete="current-password"
+                  enterKeyHint="go"
+                  className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                  className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-gray-400 hover:text-gray-600 touch-manipulation"
+                >
+                  <span className="text-lg">{showPassword ? '🙈' : '👁️'}</span>
+                </button>
+              </div>
             </div>
 
             {error && (
