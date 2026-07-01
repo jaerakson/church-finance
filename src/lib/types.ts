@@ -59,6 +59,7 @@ export interface ExpenseFormData {
 export interface LookupItem {
   key: string
   name: string
+  categoryKey?: string // 관(대분류) 키 — 헌금분류/지출분류에만 사용
 }
 
 export type ApiResponse<T> =
