@@ -1,5 +1,5 @@
 import { google } from 'googleapis'
-import { Member, MemberFormData, Offering, OfferingFormData, Expense, ExpenseFormData } from './types'
+import { Member, MemberFormData, Offering, OfferingFormData, Expense, ExpenseFormData, LookupRow, LookupKind } from './types'
 import { SHEETS } from './constants'
 
 const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID!
@@ -150,4 +150,81 @@ export async function updateExpense(rowIndex: number, data: ExpenseFormData): Pr
 
 export async function deleteExpense(rowIndex: number): Promise<void> {
   await clearRow(SHEETS.EXPENSE, rowIndex, 'E')
+}
+
+// ─── 코드값(룩업) 관리 ────────────────────────────────────────
+// 시트별 컬럼 배치가 달라 kind 별로 매핑한다.
+//  관/소속/직분:   [키, 이름]              (A,B)
+//  헌금분류:       [키, 이름, 관]          (A,B,C)
+//  지출분류:       [키, 관, 이름]          (A,B,C)  ← 이름이 C열
+const LOOKUP_CONFIG: Record<LookupKind, { sheet: string; nameCol: number; catCol?: number; colEnd: string; cols: number }> = {
+  category:     { sheet: SHEETS.CATEGORY,      nameCol: 1, colEnd: 'B', cols: 2 },
+  department:   { sheet: SHEETS.DEPARTMENT,    nameCol: 1, colEnd: 'B', cols: 2 },
+  position:     { sheet: SHEETS.POSITION,      nameCol: 1, colEnd: 'B', cols: 2 },
+  offeringType: { sheet: SHEETS.OFFERING_TYPE, nameCol: 1, catCol: 2, colEnd: 'C', cols: 3 },
+  expenseType:  { sheet: SHEETS.EXPENSE_TYPE,  nameCol: 2, catCol: 1, colEnd: 'C', cols: 3 },
+}
+
+function buildLookupRow(cfg: (typeof LOOKUP_CONFIG)[LookupKind], key: string, name: string, categoryKey?: string): string[] {
+  const row = new Array(cfg.cols).fill('')
+  row[0] = key
+  row[cfg.nameCol] = name
+  if (cfg.catCol != null) row[cfg.catCol] = categoryKey ?? ''
+  return row
+}
+
+export async function getLookupRows(kind: LookupKind): Promise<LookupRow[]> {
+  const cfg = LOOKUP_CONFIG[kind]
+  const rows = await getRange(cfg.sheet, `A2:${cfg.colEnd}`)
+  return rows
+    .map((r, i) => ({
+      rowIndex: i + 2,
+      key: (r[0] ?? '').trim(),
+      name: (r[cfg.nameCol] ?? '').trim(),
+      categoryKey: cfg.catCol != null ? (r[cfg.catCol] ?? '').trim() : undefined,
+    }))
+    .filter((x) => x.key && x.name)
+}
+
+export async function addLookupRow(kind: LookupKind, name: string, categoryKey?: string): Promise<void> {
+  const cfg = LOOKUP_CONFIG[kind]
+  const keys = await getRange(cfg.sheet, 'A2:A')
+  const maxKey = keys.reduce((m, r) => Math.max(m, Number(r[0]) || 0), 0)
+  await appendRow(cfg.sheet, buildLookupRow(cfg, String(maxKey + 1), name, categoryKey))
+}
+
+export async function updateLookupRow(kind: LookupKind, rowIndex: number, key: string, name: string, categoryKey?: string): Promise<void> {
+  const cfg = LOOKUP_CONFIG[kind]
+  await updateRow(cfg.sheet, rowIndex, buildLookupRow(cfg, key, name, categoryKey), cfg.colEnd)
+}
+
+export async function deleteLookupRow(kind: LookupKind, rowIndex: number): Promise<void> {
+  const cfg = LOOKUP_CONFIG[kind]
+  await clearRow(cfg.sheet, rowIndex, cfg.colEnd)
+}
+
+// 삭제 전 참조 무결성 검사 — 사용 중이면 삭제 불가
+export async function isLookupInUse(kind: LookupKind, key: string): Promise<boolean> {
+  switch (kind) {
+    case 'offeringType': {
+      const rows = await getOfferings()
+      return rows.some((o) => o.typeKey === key)
+    }
+    case 'expenseType': {
+      const rows = await getExpenses()
+      return rows.some((e) => e.typeKey === key)
+    }
+    case 'department': {
+      const rows = await getMembers()
+      return rows.some((m) => m.departmentKey === key)
+    }
+    case 'position': {
+      const rows = await getMembers()
+      return rows.some((m) => m.positionKey === key)
+    }
+    case 'category': {
+      const [ot, et] = await Promise.all([getLookupRows('offeringType'), getLookupRows('expenseType')])
+      return ot.some((x) => x.categoryKey === key) || et.some((x) => x.categoryKey === key)
+    }
+  }
 }

@@ -62,6 +62,13 @@ export interface LookupItem {
   categoryKey?: string // 관(대분류) 키 — 헌금분류/지출분류에만 사용
 }
 
+// 시트 행 정보를 포함한 룩업 항목 (관리/수정/삭제용)
+export interface LookupRow extends LookupItem {
+  rowIndex: number
+}
+
+export type LookupKind = 'category' | 'department' | 'position' | 'offeringType' | 'expenseType'
+
 export type ApiResponse<T> =
   | { success: true; data: T }
   | { success: false; error: string }

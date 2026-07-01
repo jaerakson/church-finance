@@ -32,6 +32,12 @@ const navGroups = [
       { href: '/finance/income', label: '수입재정집계표', icon: '📊' },
     ],
   },
+  {
+    label: '설정',
+    items: [
+      { href: '/settings/codes', label: '코드값 관리', icon: '⚙️' },
+    ],
+  },
 ]
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
