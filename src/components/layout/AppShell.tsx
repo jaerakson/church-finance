@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
@@ -36,7 +36,19 @@ const navGroups = [
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false)          // 모바일 드로어
+  const [collapsed, setCollapsed] = useState(false) // 데스크톱 접기
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('sidebarCollapsed') === '1') setCollapsed(true)
+    } catch { /* ignore */ }
+  }, [])
+
+  const toggleCollapsed = (v: boolean) => {
+    setCollapsed(v)
+    try { localStorage.setItem('sidebarCollapsed', v ? '1' : '0') } catch { /* ignore */ }
+  }
 
   // 로그인 화면은 사이드바 없이 전체 화면으로
   if (pathname === '/login') return <>{children}</>
@@ -61,15 +73,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <div className="lg:hidden fixed inset-0 bg-black/30 z-40" onClick={() => setOpen(false)} />
       )}
 
-      {/* 사이드바 — 모바일: 오프캔버스, 데스크톱: 고정 */}
+      {/* 데스크톱: 접힌 상태일 때 다시 여는 버튼 */}
+      {collapsed && (
+        <button
+          type="button"
+          onClick={() => toggleCollapsed(false)}
+          aria-label="사이드바 열기"
+          className="hidden lg:flex fixed top-4 left-4 z-30 w-10 h-10 items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50"
+        >
+          <span className="text-lg">☰</span>
+        </button>
+      )}
+
+      {/* 사이드바 — 모바일: 오프캔버스, 데스크톱: 고정(접기 가능) */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white border-r border-gray-100 shadow-sm z-50 flex flex-col transition-transform duration-200 lg:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white border-r border-gray-100 shadow-sm z-50 flex flex-col transition-transform duration-200 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}`}
       >
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest mb-0.5">검암중앙교회</p>
             <h1 className="text-base font-bold text-gray-900">재정관리</h1>
           </div>
+          {/* 모바일: 닫기 */}
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -77,6 +102,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 touch-manipulation"
           >
             ✕
+          </button>
+          {/* 데스크톱: 접기 */}
+          <button
+            type="button"
+            onClick={() => toggleCollapsed(true)}
+            aria-label="사이드바 접기"
+            title="사이드바 접기"
+            className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <span className="text-lg">«</span>
           </button>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
@@ -110,8 +145,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* 본문 — 모바일: 전체폭 + 상단바 여백, 데스크톱: 사이드바 옆 */}
-      <main className="lg:ml-56 pt-14 lg:pt-0 p-4 lg:p-8 min-h-screen">
+      {/* 본문 — 모바일: 전체폭 + 상단바 여백, 데스크톱: 사이드바 옆(접으면 전체폭) */}
+      <main className={`${collapsed ? 'lg:ml-0' : 'lg:ml-56'} pt-14 lg:pt-0 p-4 lg:p-8 min-h-screen transition-[margin] duration-200`}>
         {children}
       </main>
     </div>
