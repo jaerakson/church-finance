@@ -7,6 +7,7 @@ import {
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   flexRender,
   createColumnHelper,
   SortingState,
@@ -14,12 +15,14 @@ import {
 } from '@tanstack/react-table'
 import { Member } from '@/lib/types'
 import Badge from '@/components/ui/Badge'
-import { POSITIONS, DEPARTMENTS, lookupName } from '@/lib/constants'
+import { lookupName } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 
 const helper = createColumnHelper<Member>()
 
 export default function MemberTable({ data }: { data: Member[] }) {
   const router = useRouter()
+  const { positions, departments } = useLookups()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
@@ -31,12 +34,12 @@ export default function MemberTable({ data }: { data: Member[] }) {
     }),
     helper.accessor('positionKey', {
       header: '직분',
-      cell: (info) => <Badge label={lookupName(POSITIONS, info.getValue()) || '-'} color="blue" />,
+      cell: (info) => <Badge label={lookupName(positions, info.getValue()) || '-'} color="blue" />,
       filterFn: 'equals',
     }),
     helper.accessor('departmentKey', {
       header: '소속',
-      cell: (info) => <span>{lookupName(DEPARTMENTS, info.getValue()) || '-'}</span>,
+      cell: (info) => <span>{lookupName(departments, info.getValue()) || '-'}</span>,
       filterFn: 'equals',
     }),
     helper.accessor('phone', {
@@ -48,7 +51,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
     helper.accessor('baptizedAt', {
       header: '세례일',
     }),
-  ], [])
+  ], [positions, departments])
 
   const table = useReactTable({
     data,
@@ -60,6 +63,8 @@ export default function MemberTable({ data }: { data: Member[] }) {
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 50 } },
   })
 
   return (
@@ -74,7 +79,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
         />
         <LookupSelect
           label="직분"
-          options={POSITIONS}
+          options={positions}
           onChange={(v) =>
             setColumnFilters((f) =>
               v ? [...f.filter((x) => x.id !== 'positionKey'), { id: 'positionKey', value: v }]
@@ -84,7 +89,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
         />
         <LookupSelect
           label="소속"
-          options={DEPARTMENTS}
+          options={departments}
           onChange={(v) =>
             setColumnFilters((f) =>
               v ? [...f.filter((x) => x.id !== 'departmentKey'), { id: 'departmentKey', value: v }]
@@ -140,7 +145,32 @@ export default function MemberTable({ data }: { data: Member[] }) {
           </tbody>
         </table>
       </div>
+
+      {table.getPageCount() > 1 && (
+        <div className="flex items-center justify-center gap-2 text-sm">
+          <PageBtn onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}>«</PageBtn>
+          <PageBtn onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>이전</PageBtn>
+          <span className="px-2 text-gray-500">
+            {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+          </span>
+          <PageBtn onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>다음</PageBtn>
+          <PageBtn onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}>»</PageBtn>
+        </div>
+      )}
     </div>
+  )
+}
+
+function PageBtn({ onClick, disabled, children }: { onClick: () => void; disabled: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+    >
+      {children}
+    </button>
   )
 }
 

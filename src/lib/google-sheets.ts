@@ -34,6 +34,19 @@ async function appendRow(sheet: string, values: string[]): Promise<void> {
   })
 }
 
+// 시트(탭)가 없으면 생성하고 헤더 행을 넣는다. (예산 탭 최초 사용 시)
+async function ensureSheet(title: string, header: string[]): Promise<void> {
+  const sheets = getSheets()
+  const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID, fields: 'sheets.properties.title' })
+  const exists = (meta.data.sheets ?? []).some((s) => s.properties?.title === title)
+  if (exists) return
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId: SPREADSHEET_ID,
+    requestBody: { requests: [{ addSheet: { properties: { title } } }] },
+  })
+  await appendRow(title, header)
+}
+
 async function updateRow(sheet: string, rowIndex: number, values: string[], colEnd: string): Promise<void> {
   const sheets = getSheets()
   await sheets.spreadsheets.values.update({
@@ -201,6 +214,93 @@ export async function updateLookupRow(kind: LookupKind, rowIndex: number, key: s
 export async function deleteLookupRow(kind: LookupKind, rowIndex: number): Promise<void> {
   const cfg = LOOKUP_CONFIG[kind]
   await clearRow(cfg.sheet, rowIndex, cfg.colEnd)
+}
+
+// 모든 룩업을 한 번에 (입력 드롭다운·집계 실시간 반영용)
+export interface AllLookups {
+  category: LookupRow[]
+  department: LookupRow[]
+  position: LookupRow[]
+  offeringType: LookupRow[]
+  expenseType: LookupRow[]
+}
+
+export async function getAllLookups(): Promise<AllLookups> {
+  const [category, department, position, offeringType, expenseType] = await Promise.all([
+    getLookupRows('category'),
+    getLookupRows('department'),
+    getLookupRows('position'),
+    getLookupRows('offeringType'),
+    getLookupRows('expenseType'),
+  ])
+  return { category, department, position, offeringType, expenseType }
+}
+
+// ─── 예산 ─────────────────────────────────────────────────────
+// 시트 '예산' 컬럼: A=연도, B=구분(income|expense), C=코드키, D=예산액 (항목별 연간 1개)
+export type BudgetKind = 'income' | 'expense'
+export interface Budget {
+  rowIndex: number
+  year: string
+  kind: BudgetKind
+  typeKey: string
+  amount: number
+}
+const BUDGET_HEADER = ['연도', '구분', '코드키', '예산액']
+
+function parseNum(v: unknown): number {
+  return Number(String(v ?? '').replace(/,/g, '')) || 0
+}
+
+export async function getBudgets(year: string): Promise<Budget[]> {
+  await ensureSheet(SHEETS.BUDGET, BUDGET_HEADER)
+  const rows = await getRange(SHEETS.BUDGET, 'A2:D')
+  return rows
+    .map((r, i) => ({
+      rowIndex: i + 2,
+      year: (r[0] ?? '').trim(),
+      kind: (r[1] ?? '').trim() as BudgetKind,
+      typeKey: (r[2] ?? '').trim(),
+      amount: parseNum(r[3]),
+    }))
+    .filter((b) => b.year === year && (b.kind === 'income' || b.kind === 'expense') && b.typeKey)
+}
+
+// 연도 예산 맵: { income: {typeKey: amount}, expense: {...} }
+export async function getBudgetMap(year: string): Promise<{ income: Record<string, number>; expense: Record<string, number> }> {
+  const budgets = await getBudgets(year)
+  const map = { income: {} as Record<string, number>, expense: {} as Record<string, number> }
+  for (const b of budgets) map[b.kind][b.typeKey] = b.amount
+  return map
+}
+
+export async function setBudget(year: string, kind: BudgetKind, typeKey: string, amount: number): Promise<void> {
+  await ensureSheet(SHEETS.BUDGET, BUDGET_HEADER)
+  const rows = await getRange(SHEETS.BUDGET, 'A2:D')
+  const idx = rows.findIndex((r) => (r[0] ?? '').trim() === year && (r[1] ?? '').trim() === kind && (r[2] ?? '').trim() === typeKey)
+  const row = [year, kind, typeKey, String(Math.round(amount))]
+  if (idx >= 0) {
+    await updateRow(SHEETS.BUDGET, idx + 2, row, 'D')
+  } else {
+    await appendRow(SHEETS.BUDGET, row)
+  }
+}
+
+// ─── 백업 ─────────────────────────────────────────────────────
+// 모든 시트(탭)의 원본 값을 그대로 읽어 반환한다. (전체 백업 JSON용)
+export interface BackupData {
+  spreadsheetId: string
+  sheets: Record<string, string[][]>
+}
+
+export async function getAllRawData(): Promise<BackupData> {
+  const sheets = getSheets()
+  const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID, fields: 'sheets.properties.title' })
+  const titles = (meta.data.sheets ?? []).map((s) => s.properties?.title).filter(Boolean) as string[]
+  const entries = await Promise.all(
+    titles.map(async (t) => [t, await getRange(t, 'A1:Z')] as const),
+  )
+  return { spreadsheetId: SPREADSHEET_ID, sheets: Object.fromEntries(entries) }
 }
 
 // 삭제 전 참조 무결성 검사 — 사용 중이면 삭제 불가

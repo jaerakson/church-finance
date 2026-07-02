@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMember } from '@/lib/google-sheets'
+import { getMember, getLookupRows } from '@/lib/google-sheets'
 import MemberForm from '@/components/forms/MemberForm'
 import Badge from '@/components/ui/Badge'
 import { POSITIONS, DEPARTMENTS, lookupName } from '@/lib/constants'
@@ -9,7 +9,11 @@ type Props = { params: Promise<{ rowIndex: string }> }
 
 export default async function MemberDetailPage({ params }: Props) {
   const { rowIndex } = await params
-  const member = await getMember(Number(rowIndex)).catch(() => null)
+  const [member, positions, departments] = await Promise.all([
+    getMember(Number(rowIndex)).catch(() => null),
+    getLookupRows('position').catch(() => POSITIONS),
+    getLookupRows('department').catch(() => DEPARTMENTS),
+  ])
 
   if (!member) notFound()
 
@@ -22,8 +26,8 @@ export default async function MemberDetailPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
           <div className="flex gap-2 mt-1">
-            <Badge label={lookupName(POSITIONS, member.positionKey) || '-'} color="blue" />
-            <Badge label={lookupName(DEPARTMENTS, member.departmentKey) || '-'} color="green" />
+            <Badge label={lookupName(positions, member.positionKey) || '-'} color="blue" />
+            <Badge label={lookupName(departments, member.departmentKey) || '-'} color="green" />
           </div>
         </div>
       </div>

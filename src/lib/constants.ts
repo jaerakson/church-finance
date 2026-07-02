@@ -10,6 +10,7 @@ export const SHEETS = {
   OFFERING_TYPE: '헌금분류',
   EXPENSE_TYPE: '지출분류',
   CATEGORY: '관',
+  BUDGET: '예산',
 } as const
 
 // 관 (대분류) — 헌금분류/지출분류가 속하는 상위 분류 (재정집계표용)

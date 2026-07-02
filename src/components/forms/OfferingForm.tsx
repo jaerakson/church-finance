@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { OfferingFormData } from '@/lib/types'
-import { OFFERING_TYPES } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 import { Member } from '@/lib/types'
 
 const schema = z.object({
@@ -28,6 +28,7 @@ interface Props {
 
 export default function OfferingForm({ mode, members, defaultValues, rowIndex }: Props) {
   const router = useRouter()
+  const { offeringTypes } = useLookups()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -71,7 +72,7 @@ export default function OfferingForm({ mode, members, defaultValues, rowIndex }:
         <Field label="헌금 종류" error={errors.typeKey?.message}>
           <select {...register('typeKey')} className={inputClass}>
             <option value="">선택</option>
-            {OFFERING_TYPES.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+            {offeringTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
           </select>
         </Field>
         <Field label="금액 (원)" error={errors.amount?.message}>

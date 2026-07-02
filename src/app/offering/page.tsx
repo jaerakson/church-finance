@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { getOfferings, getMembers } from '@/lib/google-sheets'
+import { getOfferings, getMembers, getLookupRows } from '@/lib/google-sheets'
 import { OFFERING_TYPES } from '@/lib/constants'
 import { currentYear } from '@/lib/date'
 import YearFilter from '@/components/ui/YearFilter'
@@ -16,13 +16,14 @@ function parseAmount(v: string) {
 
 export default async function OfferingPage({ searchParams }: Props) {
   const { year } = await searchParams
-  const selectedYear = (!year || year === 'all') ? 'all' : year
   const defaultYear = currentYear()
+  const selectedYear = year === 'all' ? 'all' : (year || defaultYear)
 
-  const [allOfferings, members] = await Promise.all([
-    getOfferings(),
-    getMembers(),
-  ]).catch(() => [[], []])
+  const [allOfferings, members, offeringTypes] = await Promise.all([
+    getOfferings().catch(() => []),
+    getMembers().catch(() => []),
+    getLookupRows('offeringType').catch(() => OFFERING_TYPES),
+  ])
 
   const memberMap = Object.fromEntries(members.map((m) => [m.key, m.name]))
   const years = [...new Set(allOfferings.map((o) => o.date?.slice(0, 4)).filter(Boolean))].sort().reverse() as string[]
@@ -34,7 +35,7 @@ export default async function OfferingPage({ searchParams }: Props) {
   const grandTotal = offerings.reduce((s, o) => s + parseAmount(o.amount), 0)
 
   // 전체 기간 종류별 합계
-  const totalByType = OFFERING_TYPES.map((t) => {
+  const totalByType = offeringTypes.map((t) => {
     const total = offerings.filter((o) => o.typeKey === t.key).reduce((s, o) => s + parseAmount(o.amount), 0)
     return { ...t, total }
   }).filter((t) => t.total > 0)

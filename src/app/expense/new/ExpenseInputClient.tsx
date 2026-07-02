@@ -2,19 +2,20 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Expense } from '@/lib/types'
-import { EXPENSE_TYPES, lookupName } from '@/lib/constants'
+import { lookupName } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 import { today, currentMonth } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
 import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
 import AmountInput from '@/components/ui/AmountInput'
-
-const typeOptions: ComboOption[] = EXPENSE_TYPES.map((t) => ({ value: t.key, label: t.name }))
 
 function parseAmount(v: string) {
   return Number(v.replace(/,/g, '')) || 0
 }
 
 export default function ExpenseInputClient() {
+  const { expenseTypes } = useLookups()
+  const typeOptions: ComboOption[] = expenseTypes.map((t) => ({ value: t.key, label: t.name }))
   const [date, setDate] = useState(today())
   const [typeKey, setTypeKey] = useState('')
   const [description, setDescription] = useState('')
@@ -197,7 +198,7 @@ export default function ExpenseInputClient() {
                 <li key={e.rowIndex} className="flex items-start justify-between gap-2 py-2 border-b border-gray-50 last:border-0">
                   <div>
                     <p className="text-sm font-medium text-gray-900">{e.description}</p>
-                    <p className="text-xs text-gray-400">{e.date} · {lookupName(EXPENSE_TYPES, e.typeKey)}</p>
+                    <p className="text-xs text-gray-400">{e.date} · {lookupName(expenseTypes, e.typeKey)}</p>
                   </div>
                   <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">
                     {parseAmount(e.amount).toLocaleString()}원

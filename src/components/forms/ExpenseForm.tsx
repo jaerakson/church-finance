@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ExpenseFormData } from '@/lib/types'
-import { EXPENSE_TYPES } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 
 const schema = z.object({
   date: z.string().min(1, '날짜를 입력해주세요.'),
@@ -26,6 +26,7 @@ interface Props {
 
 export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
   const router = useRouter()
+  const { expenseTypes } = useLookups()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,7 +64,7 @@ export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
         <Field label="지출 종류" error={errors.typeKey?.message}>
           <select {...register('typeKey')} className={inputClass}>
             <option value="">선택</option>
-            {EXPENSE_TYPES.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
+            {expenseTypes.map((t) => <option key={t.key} value={t.key}>{t.name}</option>)}
           </select>
         </Field>
         <Field label="내역" error={errors.description?.message} className="sm:col-span-2">

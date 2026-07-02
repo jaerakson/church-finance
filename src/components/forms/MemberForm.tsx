@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { MemberFormData } from '@/lib/types'
-import { POSITIONS, DEPARTMENTS } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 
 const schema = z.object({
   name:          z.string().min(1, '이름을 입력해주세요.'),
@@ -29,6 +29,7 @@ interface Props {
 
 export default function MemberForm({ mode, defaultValues, rowIndex }: Props) {
   const router = useRouter()
+  const { positions, departments } = useLookups()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -69,13 +70,13 @@ export default function MemberForm({ mode, defaultValues, rowIndex }: Props) {
         <Field label="직분" error={errors.positionKey?.message}>
           <select {...register('positionKey')} className={inputClass}>
             <option value="">선택</option>
-            {POSITIONS.map((p) => <option key={p.key} value={p.key}>{p.name}</option>)}
+            {positions.map((p) => <option key={p.key} value={p.key}>{p.name}</option>)}
           </select>
         </Field>
         <Field label="소속" error={errors.departmentKey?.message}>
           <select {...register('departmentKey')} className={inputClass}>
             <option value="">선택</option>
-            {DEPARTMENTS.map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}
+            {departments.map((d) => <option key={d.key} value={d.key}>{d.name}</option>)}
           </select>
         </Field>
         <Field label="전화번호">

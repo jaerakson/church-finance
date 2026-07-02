@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Expense } from '@/lib/types'
-import { EXPENSE_TYPES, lookupName } from '@/lib/constants'
+import { lookupName } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 import { dayOfWeekKo } from '@/lib/date'
 
 interface Props {
@@ -18,6 +19,7 @@ function parseAmount(v: string) {
 
 export default function ExpenseHistoryList({ expenses }: Props) {
   const router = useRouter()
+  const { expenseTypes } = useLookups()
 
   const byDate = expenses.reduce<Record<string, Expense[]>>((acc, e) => {
     acc[e.date] = acc[e.date] ?? []
@@ -258,7 +260,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                         <span className="min-w-0 truncate">
                           <span className="text-gray-900">{e.description}</span>
                           <span className="ml-2 text-xs text-gray-400">
-                            {lookupName(EXPENSE_TYPES, e.typeKey)}
+                            {lookupName(expenseTypes, e.typeKey)}
                             {e.note ? ` · ${e.note}` : ''}
                           </span>
                         </span>

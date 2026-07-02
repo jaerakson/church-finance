@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Offering } from '@/lib/types'
-import { OFFERING_TYPES, lookupName } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 import { dayOfWeekKo } from '@/lib/date'
 
 interface Props {
@@ -19,6 +19,7 @@ function parseAmount(v: string) {
 
 export default function OfferingHistoryList({ offerings, memberMap }: Props) {
   const router = useRouter()
+  const { offeringTypes } = useLookups()
 
   const byDate = offerings.reduce<Record<string, Offering[]>>((acc, o) => {
     acc[o.date] = acc[o.date] ?? []
@@ -146,7 +147,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
         const isOpen = openDate === date
 
         // 헌금 종류별 집계
-        const typeGroups = OFFERING_TYPES.map((t) => {
+        const typeGroups = offeringTypes.map((t) => {
           const list = items.filter((o) => o.typeKey === t.key)
           return { key: t.key, name: t.name, list, total: list.reduce((s, o) => s + parseAmount(o.amount), 0) }
         }).filter((g) => g.list.length > 0)

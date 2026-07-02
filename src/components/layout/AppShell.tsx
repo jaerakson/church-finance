@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/ui/LogoutButton'
+import { LookupProvider } from '@/lib/lookups'
 
 const navGroups = [
   { label: '현황', items: [{ href: '/', label: '대시보드', icon: '📊' }] },
@@ -27,6 +28,7 @@ const navGroups = [
     label: '재정 상세',
     items: [
       { href: '/finance/summary', label: '재정집계표', icon: '📈' },
+      { href: '/finance/budget', label: '예산 관리', icon: '🎯' },
       { href: '/finance/income', label: '수입재정집계표', icon: '📊' },
       { href: '/finance/offerings', label: '헌금 상세', icon: '📄' },
       { href: '/finance/expenses', label: '지출 상세', icon: '📑' },
@@ -37,6 +39,7 @@ const navGroups = [
     label: '설정',
     items: [
       { href: '/settings/codes', label: '코드값 관리', icon: '⚙️' },
+      { href: '/settings/backup', label: '데이터 백업', icon: '💾' },
     ],
   },
 ]
@@ -57,10 +60,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     try { localStorage.setItem('sidebarCollapsed', v ? '1' : '0') } catch { /* ignore */ }
   }
 
-  // 로그인 화면은 사이드바 없이 전체 화면으로
+  // 로그인 화면은 사이드바 없이 전체 화면으로 (룩업 Context 불필요)
   if (pathname === '/login') return <>{children}</>
 
   return (
+    <LookupProvider>
     <div className="min-h-screen">
       {/* 모바일 상단바 */}
       <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-100 z-30 flex items-center gap-3 px-4 shadow-sm">
@@ -157,5 +161,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
     </div>
+    </LookupProvider>
   )
 }

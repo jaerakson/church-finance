@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getLookupRows, addLookupRow, updateLookupRow, deleteLookupRow, isLookupInUse } from '@/lib/google-sheets'
+import { getLookupRows, getAllLookups, addLookupRow, updateLookupRow, deleteLookupRow, isLookupInUse } from '@/lib/google-sheets'
 import { LookupKind } from '@/lib/types'
 
 const KINDS: LookupKind[] = ['category', 'department', 'position', 'offeringType', 'expenseType']
@@ -10,6 +10,15 @@ function isKind(v: string | null): v is LookupKind {
 
 export async function GET(request: Request) {
   const kind = new URL(request.url).searchParams.get('kind')
+  // kind=all → 전체 룩업을 한 번에 (실시간 반영 Context용)
+  if (kind === 'all') {
+    try {
+      return NextResponse.json({ success: true, data: await getAllLookups() })
+    } catch (e) {
+      console.error('[GET /api/lookups?kind=all]', e)
+      return NextResponse.json({ success: false, error: '불러오지 못했습니다.' }, { status: 500 })
+    }
+  }
   if (!isKind(kind)) return NextResponse.json({ success: false, error: 'invalid kind' }, { status: 400 })
   try {
     return NextResponse.json({ success: true, data: await getLookupRows(kind) })

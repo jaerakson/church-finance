@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { getExpenses } from '@/lib/google-sheets'
+import { getExpenses, getLookupRows } from '@/lib/google-sheets'
 import { EXPENSE_TYPES } from '@/lib/constants'
 import { currentYear } from '@/lib/date'
 import YearFilter from '@/components/ui/YearFilter'
@@ -16,10 +16,13 @@ function parseAmount(v: string) {
 
 export default async function ExpensePage({ searchParams }: Props) {
   const { year } = await searchParams
-  const selectedYear = (!year || year === 'all') ? 'all' : year
   const defaultYear = currentYear()
+  const selectedYear = year === 'all' ? 'all' : (year || defaultYear)
 
-  const allExpenses = await getExpenses().catch(() => [])
+  const [allExpenses, expenseTypes] = await Promise.all([
+    getExpenses().catch(() => []),
+    getLookupRows('expenseType').catch(() => EXPENSE_TYPES),
+  ])
   const years = [...new Set(allExpenses.map((e) => e.date?.slice(0, 4)).filter(Boolean))].sort().reverse() as string[]
 
   const expenses = selectedYear === 'all'
@@ -28,7 +31,7 @@ export default async function ExpensePage({ searchParams }: Props) {
 
   const grandTotal = expenses.reduce((s, e) => s + parseAmount(e.amount), 0)
 
-  const totalByType = EXPENSE_TYPES.map((t) => {
+  const totalByType = expenseTypes.map((t) => {
     const total = expenses.filter((e) => e.typeKey === t.key).reduce((s, e) => s + parseAmount(e.amount), 0)
     return { ...t, total }
   }).filter((t) => t.total > 0)

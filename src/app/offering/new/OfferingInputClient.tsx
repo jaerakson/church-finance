@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Member, Offering } from '@/lib/types'
-import { OFFERING_TYPES, lookupName } from '@/lib/constants'
+import { lookupName } from '@/lib/constants'
+import { useLookups } from '@/lib/lookups'
 import { today, formatDateKo } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
 import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
@@ -22,9 +23,10 @@ function parseAmount(v: string) {
 }
 
 export default function OfferingInputClient({ members: initialMembers }: Props) {
+  const { offeringTypes } = useLookups()
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const memberOptions: ComboOption[] = members.map((m) => ({ value: m.key, label: m.name }))
-  const typeOptions: ComboOption[] = OFFERING_TYPES.map((t) => ({ value: t.key, label: t.name }))
+  const typeOptions: ComboOption[] = offeringTypes.map((t) => ({ value: t.key, label: t.name }))
   const memberMap = Object.fromEntries(members.map((m) => [m.key, m.name]))
 
   const [date, setDate] = useState(today())
@@ -211,7 +213,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
 
   const todayTotal = todayList.reduce((s, o) => s + parseAmount(o.amount), 0)
 
-  const byType = OFFERING_TYPES.map((t) => {
+  const byType = offeringTypes.map((t) => {
     const items = todayList.filter((o) => o.typeKey === t.key)
     const total = items.reduce((s, o) => s + parseAmount(o.amount), 0)
     return { ...t, total, count: items.length }
@@ -279,7 +281,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
           {personalized && (
             <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 space-y-2">
               <p className="text-xs font-semibold text-blue-700">
-                👤 {memberName}님 · {lookupName(OFFERING_TYPES, typeKey)} 개인 기록 (최근 1년)
+                👤 {memberName}님 · {lookupName(offeringTypes, typeKey)} 개인 기록 (최근 1년)
               </p>
 
               {recent.length > 0 ? (
@@ -324,13 +326,13 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
           {/* 중복 차단 (완전 일치) */}
           {isExactDuplicate && (
             <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-4 py-3 text-sm font-medium">
-              🚫 <strong>{memberName}</strong>님의 <strong>{lookupName(OFFERING_TYPES, typeKey)}</strong> {parseAmount(amount).toLocaleString()}원이 이미 입력되어 있습니다. <strong>중복이라 저장할 수 없습니다.</strong>
+              🚫 <strong>{memberName}</strong>님의 <strong>{lookupName(offeringTypes, typeKey)}</strong> {parseAmount(amount).toLocaleString()}원이 이미 입력되어 있습니다. <strong>중복이라 저장할 수 없습니다.</strong>
             </div>
           )}
           {/* 중복 안내 (금액만 다름 — 허용) */}
           {isSoftDuplicate && (
             <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl px-4 py-3 text-sm">
-              ⚠️ <strong>{memberName}</strong>님의 <strong>{lookupName(OFFERING_TYPES, typeKey)}</strong> 헌금이 오늘 이미 있습니다(금액 다름). 확인 후 저장하세요.
+              ⚠️ <strong>{memberName}</strong>님의 <strong>{lookupName(offeringTypes, typeKey)}</strong> 헌금이 오늘 이미 있습니다(금액 다름). 확인 후 저장하세요.
             </div>
           )}
 
@@ -379,7 +381,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-gray-900">
                         {memberMap[o.memberKey] ?? o.memberKey}
-                        <span className="ml-1.5 text-xs text-gray-400">{lookupName(OFFERING_TYPES, o.typeKey)}</span>
+                        <span className="ml-1.5 text-xs text-gray-400">{lookupName(offeringTypes, o.typeKey)}</span>
                       </p>
                       <input
                         type="text"
@@ -432,7 +434,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{memberMap[o.memberKey] ?? o.memberKey}</p>
-                        <p className="text-xs text-gray-400 truncate">{lookupName(OFFERING_TYPES, o.typeKey)}{o.note ? ` · ${o.note}` : ''}</p>
+                        <p className="text-xs text-gray-400 truncate">{lookupName(offeringTypes, o.typeKey)}{o.note ? ` · ${o.note}` : ''}</p>
                       </div>
                       <div className="flex items-center gap-1 whitespace-nowrap">
                         <span className="text-sm font-semibold text-gray-800">{parseAmount(o.amount).toLocaleString()}원</span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { LookupRow, LookupKind } from '@/lib/types'
+import { useLookups } from '@/lib/lookups'
 
 const KIND_TABS: { kind: LookupKind; label: string; hasCategory: boolean }[] = [
   { kind: 'expenseType', label: '지출분류', hasCategory: true },
@@ -12,6 +13,7 @@ const KIND_TABS: { kind: LookupKind; label: string; hasCategory: boolean }[] = [
 ]
 
 export default function LookupManager() {
+  const { refresh: refreshLookups } = useLookups()
   const [kind, setKind] = useState<LookupKind>('expenseType')
   const [items, setItems] = useState<LookupRow[]>([])
   const [categories, setCategories] = useState<LookupRow[]>([])
@@ -61,6 +63,7 @@ export default function LookupManager() {
       setNewName(''); setNewCat('')
       await fetchItems(kind)
       if (kind === 'category') await refreshCategories()
+      await refreshLookups() // 입력 드롭다운·집계에 즉시 반영
     } catch (e: unknown) { setError(e instanceof Error ? e.message : '저장 실패') }
     finally { setBusy(false) }
   }
@@ -80,6 +83,7 @@ export default function LookupManager() {
       setEditKey(null)
       await fetchItems(kind)
       if (kind === 'category') await refreshCategories()
+      await refreshLookups() // 입력 드롭다운·집계에 즉시 반영
     } catch (e: unknown) { setError(e instanceof Error ? e.message : '수정 실패') }
     finally { setBusy(false) }
   }
@@ -93,6 +97,7 @@ export default function LookupManager() {
       setConfirmKey(null)
       await fetchItems(kind)
       if (kind === 'category') await refreshCategories()
+      await refreshLookups() // 입력 드롭다운·집계에 즉시 반영
     } catch (e: unknown) { setError(e instanceof Error ? e.message : '삭제 실패') }
     finally { setBusy(false) }
   }
