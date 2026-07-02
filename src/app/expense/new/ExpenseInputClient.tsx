@@ -66,17 +66,23 @@ export default function ExpenseInputClient() {
 
   useEffect(() => {
     if (!typeKey) { setSuggestions([]); setDescSuggestions([]); setNoteSuggestions([]); return }
-    fetch(`/api/stats/amounts?typeKey=${typeKey}&asOf=${date}&kind=expense`)
-      .then((r) => r.json())
-      .then((j) => {
-        if (j.success) {
-          setSuggestions(j.data ?? [])
-          setDescSuggestions(j.descriptions ?? [])
-          setNoteSuggestions(j.notes ?? [])
-        }
-      })
-      .catch(() => {})
-  }, [typeKey, date])
+    // 금액 제안은 종류 + 내역 조건. 내역은 타이핑 중이므로 디바운스로 시트 조회 남발 방지.
+    const handle = setTimeout(() => {
+      const params = new URLSearchParams({ typeKey, asOf: date, kind: 'expense' })
+      if (description.trim()) params.set('description', description.trim())
+      fetch(`/api/stats/amounts?${params.toString()}`)
+        .then((r) => r.json())
+        .then((j) => {
+          if (j.success) {
+            setSuggestions(j.data ?? [])
+            setDescSuggestions(j.descriptions ?? [])
+            setNoteSuggestions(j.notes ?? [])
+          }
+        })
+        .catch(() => {})
+    }, 350)
+    return () => clearTimeout(handle)
+  }, [typeKey, date, description])
 
   // 완전 일치(날짜+종류+내역+금액) → 저장 차단
   const isExactDuplicate = Boolean(

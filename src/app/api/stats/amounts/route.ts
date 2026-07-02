@@ -29,6 +29,7 @@ export async function GET(request: Request) {
   const typeKey = searchParams.get('typeKey')
   const asOf = searchParams.get('asOf') // 기준일 (YYYY-MM-DD). 이 날짜로부터 최근 1년
   const memberKey = searchParams.get('memberKey')
+  const description = searchParams.get('description') // 지출: 종류+내역 조건으로 금액 좁히기
   const kind = searchParams.get('kind') ?? 'offering'
 
   if (!typeKey) {
@@ -52,9 +53,15 @@ export async function GET(request: Request) {
     const cutoffStr = cutoff.toISOString().slice(0, 10)
     const windowScoped = typeScoped.filter((i) => i.date && i.date >= cutoffStr)
 
+    // 금액 제안은 내역(description)까지 일치하는 건으로 좁힌다. (없으면 종류 기준 그대로)
+    const descTrim = description?.trim()
+    const amountScoped = descTrim
+      ? windowScoped.filter((i) => (i.description ?? '').trim() === descTrim)
+      : windowScoped
+
     // 빈도순 금액 TOP5
     const counts: Record<string, number> = {}
-    for (const item of windowScoped) {
+    for (const item of amountScoped) {
       const amt = item.amount.replace(/,/g, '').trim()
       if (amt && !isNaN(Number(amt)) && Number(amt) > 0) {
         counts[amt] = (counts[amt] ?? 0) + 1
