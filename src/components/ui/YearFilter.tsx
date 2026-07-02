@@ -4,13 +4,16 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 interface Props {
   years: string[]
+  allowAll?: boolean
 }
 
-export default function YearFilter({ years }: Props) {
+export default function YearFilter({ years, allowAll = true }: Props) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const current = searchParams.get('year') ?? String(new Date().getFullYear())
+  const raw = searchParams.get('year') ?? String(new Date().getFullYear())
+  // 전체 연도를 허용하지 않는 화면(재정집계표 등)에서는 'all'을 기본연도로 대체
+  const current = !allowAll && raw === 'all' ? String(new Date().getFullYear()) : raw
 
   const onChange = (year: string) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -21,11 +24,11 @@ export default function YearFilter({ years }: Props) {
 
   return (
     <select
-      value={current === '' ? 'all' : current}
+      value={current === '' ? (allowAll ? 'all' : (years[0] ?? '')) : current}
       onChange={(e) => onChange(e.target.value)}
       className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium"
     >
-      <option value="all">전체 연도</option>
+      {allowAll && <option value="all">전체 연도</option>}
       {years.map((y) => (
         <option key={y} value={y}>{y}년</option>
       ))}

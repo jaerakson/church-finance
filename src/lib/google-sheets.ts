@@ -35,16 +35,20 @@ async function appendRow(sheet: string, values: string[]): Promise<void> {
 }
 
 // 시트(탭)가 없으면 생성하고 헤더 행을 넣는다. (예산 탭 최초 사용 시)
+// 한 번 확인/생성된 탭은 캐시해 매 호출마다 spreadsheets.get 하지 않는다.
+const ensuredSheets = new Set<string>()
 async function ensureSheet(title: string, header: string[]): Promise<void> {
+  if (ensuredSheets.has(title)) return
   const sheets = getSheets()
   const meta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID, fields: 'sheets.properties.title' })
   const exists = (meta.data.sheets ?? []).some((s) => s.properties?.title === title)
-  if (exists) return
+  if (exists) { ensuredSheets.add(title); return }
   await sheets.spreadsheets.batchUpdate({
     spreadsheetId: SPREADSHEET_ID,
     requestBody: { requests: [{ addSheet: { properties: { title } } }] },
   })
   await appendRow(title, header)
+  ensuredSheets.add(title)
 }
 
 async function updateRow(sheet: string, rowIndex: number, values: string[], colEnd: string): Promise<void> {
@@ -186,10 +190,23 @@ function buildLookupRow(cfg: (typeof LOOKUP_CONFIG)[LookupKind], key: string, na
   return row
 }
 
+// 룩업 읽기 캐시 — Sheets 읽기 쿼터 절감용. TTL이 짧아 외부(시트 직접) 편집도 곧 반영되고,
+// 앱 내 편집(add/update/delete)은 즉시 무효화하므로 '실시간 반영'은 유지된다.
+const LOOKUP_TTL_MS = 15_000
+const lookupCache = new Map<LookupKind, { data: LookupRow[]; ts: number }>()
+
+function invalidateLookupCache(kind?: LookupKind): void {
+  if (kind) lookupCache.delete(kind)
+  else lookupCache.clear()
+}
+
 export async function getLookupRows(kind: LookupKind): Promise<LookupRow[]> {
+  const cached = lookupCache.get(kind)
+  if (cached && Date.now() - cached.ts < LOOKUP_TTL_MS) return cached.data
+
   const cfg = LOOKUP_CONFIG[kind]
   const rows = await getRange(cfg.sheet, `A2:${cfg.colEnd}`)
-  return rows
+  const data = rows
     .map((r, i) => ({
       rowIndex: i + 2,
       key: (r[0] ?? '').trim(),
@@ -197,6 +214,8 @@ export async function getLookupRows(kind: LookupKind): Promise<LookupRow[]> {
       categoryKey: cfg.catCol != null ? (r[cfg.catCol] ?? '').trim() : undefined,
     }))
     .filter((x) => x.key && x.name)
+  lookupCache.set(kind, { data, ts: Date.now() })
+  return data
 }
 
 export async function addLookupRow(kind: LookupKind, name: string, categoryKey?: string): Promise<void> {
@@ -204,16 +223,19 @@ export async function addLookupRow(kind: LookupKind, name: string, categoryKey?:
   const keys = await getRange(cfg.sheet, 'A2:A')
   const maxKey = keys.reduce((m, r) => Math.max(m, Number(r[0]) || 0), 0)
   await appendRow(cfg.sheet, buildLookupRow(cfg, String(maxKey + 1), name, categoryKey))
+  invalidateLookupCache(kind)
 }
 
 export async function updateLookupRow(kind: LookupKind, rowIndex: number, key: string, name: string, categoryKey?: string): Promise<void> {
   const cfg = LOOKUP_CONFIG[kind]
   await updateRow(cfg.sheet, rowIndex, buildLookupRow(cfg, key, name, categoryKey), cfg.colEnd)
+  invalidateLookupCache(kind)
 }
 
 export async function deleteLookupRow(kind: LookupKind, rowIndex: number): Promise<void> {
   const cfg = LOOKUP_CONFIG[kind]
   await clearRow(cfg.sheet, rowIndex, cfg.colEnd)
+  invalidateLookupCache(kind)
 }
 
 // 모든 룩업을 한 번에 (입력 드롭다운·집계 실시간 반영용)
@@ -301,6 +323,56 @@ export async function getAllRawData(): Promise<BackupData> {
     titles.map(async (t) => [t, await getRange(t, 'A1:Z')] as const),
   )
   return { spreadsheetId: SPREADSHEET_ID, sheets: Object.fromEntries(entries) }
+}
+
+// ─── 복원 ─────────────────────────────────────────────────────
+// 백업 JSON을 '대상 스프레드시트(관리자가 새로 만들어 서비스계정에 공유한 빈 시트)'에 되살린다.
+// 원본 데이터 탭만 복원하고, 수식/피벗으로 자동계산되는 탭은 건드리지 않는다.
+const RESTORE_SHEET_SET = new Set<string>([
+  SHEETS.MEMBER, SHEETS.OFFERING, SHEETS.EXPENSE, SHEETS.DEPARTMENT,
+  SHEETS.POSITION, SHEETS.OFFERING_TYPE, SHEETS.EXPENSE_TYPE, SHEETS.CATEGORY, SHEETS.BUDGET,
+])
+
+export interface RestoreResult {
+  restored: { sheet: string; rows: number }[]
+  skipped: string[]
+}
+
+export async function restoreToSpreadsheet(targetId: string, backupSheets: Record<string, string[][]>): Promise<RestoreResult> {
+  const sheets = getSheets()
+  // 대상 접근 확인 + 기존 탭 목록 (접근 불가 시 여기서 throw → API가 안내 메시지로 변환)
+  const meta = await sheets.spreadsheets.get({ spreadsheetId: targetId, fields: 'sheets.properties.title' })
+  const existing = new Set<string>((meta.data.sheets ?? []).map((s) => s.properties?.title).filter(Boolean) as string[])
+
+  const targets = Object.keys(backupSheets).filter((t) => RESTORE_SHEET_SET.has(t))
+  const skipped = Object.keys(backupSheets).filter((t) => !RESTORE_SHEET_SET.has(t))
+
+  // 없는 데이터 탭 생성
+  const toCreate = targets.filter((t) => !existing.has(t))
+  if (toCreate.length) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: targetId,
+      requestBody: { requests: toCreate.map((title) => ({ addSheet: { properties: { title } } })) },
+    })
+  }
+
+  const restored: { sheet: string; rows: number }[] = []
+  for (const title of targets) {
+    const values = backupSheets[title] ?? []
+    // 대상 탭 비우고 백업 값 그대로 기록 (앱과 동일하게 USER_ENTERED로 숫자/날짜 타입 유지)
+    await sheets.spreadsheets.values.clear({ spreadsheetId: targetId, range: `${title}!A:Z` })
+    if (values.length) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: targetId,
+        range: `${title}!A1`,
+        valueInputOption: 'USER_ENTERED',
+        requestBody: { values },
+      })
+    }
+    restored.push({ sheet: title, rows: Math.max(0, values.length - 1) })
+  }
+  invalidateLookupCache()
+  return { restored, skipped }
 }
 
 // 삭제 전 참조 무결성 검사 — 사용 중이면 삭제 불가

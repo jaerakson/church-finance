@@ -24,7 +24,7 @@ export default async function BudgetPage({ searchParams }: Props) {
           <p className="text-sm text-gray-500 mt-1">{activeYear}년 항목별 예산을 입력하면 재정집계표에 반영됩니다. (입력 후 자동 저장)</p>
         </div>
         <Suspense>
-          <YearFilter years={YEARS} />
+          <YearFilter years={YEARS} allowAll={false} />
         </Suspense>
       </div>
 

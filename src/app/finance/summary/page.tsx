@@ -122,7 +122,7 @@ export default async function SummaryPage({ searchParams }: Props) {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Suspense>
-            <YearFilter years={years.length ? years : [defYear]} />
+            <YearFilter years={years.length ? years : [defYear]} allowAll={false} />
           </Suspense>
           <Suspense>
             <HalfFilter />

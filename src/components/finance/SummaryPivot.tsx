@@ -25,7 +25,8 @@ interface Props {
 const num = (n: number) => (n ? n.toLocaleString() : '-')
 
 export default function SummaryPivot({ title, kind, sections, grand, grandLabel, year, half, accent }: Props) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  // 기본은 모든 관(대분류) 접힌 상태로 시작한다.
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(sections.map((s) => s.category)))
   const toggle = (cat: string) =>
     setCollapsed((prev) => {
       const next = new Set(prev)
