@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { Expense } from '@/lib/types'
 import { lookupName } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
-import { today, currentMonth } from '@/lib/date'
+import { today, formatDateKo } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
 import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
 import AmountInput from '@/components/ui/AmountInput'
@@ -24,29 +24,45 @@ export default function ExpenseInputClient() {
   const [suggestions, setSuggestions] = useState<{ amount: string; count: number }[]>([])
   const [descSuggestions, setDescSuggestions] = useState<Suggestion[]>([])
   const [noteSuggestions, setNoteSuggestions] = useState<Suggestion[]>([])
-  const [monthList, setMonthList] = useState<Expense[]>([])
+  const [todayList, setTodayList] = useState<Expense[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // 수정/삭제 상태
+  const [editingRow, setEditingRow] = useState<number | null>(null)
+  const [editDescription, setEditDescription] = useState('')
+  const [editAmount, setEditAmount] = useState('')
+  const [editNote, setEditNote] = useState('')
+  const [confirmingRow, setConfirmingRow] = useState<number | null>(null)
+
   // 키보드 연속 입력용 포커스 제어
+  const typeRef = useRef<HTMLInputElement | null>(null)
   const descRef = useRef<HTMLInputElement | null>(null)
   const amountRef = useRef<HTMLInputElement | null>(null)
   const noteRef = useRef<HTMLInputElement | null>(null)
+  const focusType = () => setTimeout(() => typeRef.current?.focus(), 0)
   const focusDesc = () => setTimeout(() => descRef.current?.focus(), 0)
   const focusAmount = () => setTimeout(() => amountRef.current?.focus(), 0)
   const focusNote = () => setTimeout(() => noteRef.current?.focus(), 0)
 
-  const fetchMonth = useCallback(async () => {
-    const month = date.slice(0, 7)
+  // 지출 종류를 고르면 내역·금액·비고는 항상 비우고 시작
+  const handleTypeSelected = () => {
+    setDescription('')
+    setAmount('')
+    setNote('')
+    focusDesc()
+  }
+
+  const fetchToday = useCallback(async () => {
     try {
-      const res = await fetch(`/api/expense?month=${month}`)
+      const res = await fetch(`/api/expense?date=${date}`)
       const json = await res.json()
-      if (json.success) setMonthList(json.data)
+      if (json.success) setTodayList(json.data)
     } catch { /* silent */ }
   }, [date])
 
-  useEffect(() => { fetchMonth() }, [fetchMonth])
+  useEffect(() => { fetchToday() }, [fetchToday])
 
   useEffect(() => {
     if (!typeKey) { setSuggestions([]); setDescSuggestions([]); setNoteSuggestions([]); return }
@@ -65,7 +81,7 @@ export default function ExpenseInputClient() {
   // 완전 일치(날짜+종류+내역+금액) → 저장 차단
   const isExactDuplicate = Boolean(
     typeKey && description && amount &&
-    monthList.some((e) => e.date === date && e.typeKey === typeKey && (e.description ?? '').trim() === description.trim() && parseAmount(e.amount) === parseAmount(amount))
+    todayList.some((e) => e.date === date && e.typeKey === typeKey && (e.description ?? '').trim() === description.trim() && parseAmount(e.amount) === parseAmount(amount))
   )
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -86,14 +102,15 @@ export default function ExpenseInputClient() {
       })
       const json = await res.json()
       if (!json.success) throw new Error(json.error)
-      // 지출 종류는 고정 → 같은 종류로 연속 입력
+      // 저장 후 지출 종류부터 다시 입력 (종류가 매번 달라, 종류 선택으로 복귀 · 나머지 항목 비움)
+      setTypeKey('')
       setDescription('')
       setAmount('')
       setNote('')
       setSuccess(true)
       setTimeout(() => setSuccess(false), 2000)
-      focusDesc()
-      await fetchMonth()
+      focusType()
+      await fetchToday()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '오류가 발생했습니다.')
     } finally {
@@ -101,8 +118,52 @@ export default function ExpenseInputClient() {
     }
   }
 
-  const monthTotal = monthList.reduce((s, e) => s + parseAmount(e.amount), 0)
-  const month = date.slice(0, 7) || currentMonth()
+  const startEdit = (e: Expense) => {
+    setConfirmingRow(null)
+    setEditingRow(e.rowIndex)
+    setEditDescription(e.description ?? '')
+    setEditAmount(e.amount.replace(/,/g, '').trim())
+    setEditNote(e.note ?? '')
+  }
+
+  const cancelEdit = () => {
+    setEditingRow(null)
+    setEditDescription('')
+    setEditAmount('')
+    setEditNote('')
+  }
+
+  const saveEdit = async (e: Expense) => {
+    setError(null)
+    try {
+      const res = await fetch(`/api/expense/${e.rowIndex}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: e.date, typeKey: e.typeKey, description: editDescription, amount: editAmount, note: editNote }),
+      })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error)
+      cancelEdit()
+      await fetchToday()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '수정에 실패했습니다.')
+    }
+  }
+
+  const removeEntry = async (e: Expense) => {
+    setError(null)
+    try {
+      const res = await fetch(`/api/expense/${e.rowIndex}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!json.success) throw new Error(json.error)
+      setConfirmingRow(null)
+      await fetchToday()
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '삭제에 실패했습니다.')
+    }
+  }
+
+  const todayTotal = todayList.reduce((s, e) => s + parseAmount(e.amount), 0)
 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
@@ -118,12 +179,13 @@ export default function ExpenseInputClient() {
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputCls} />
           </Field>
 
-          <Field label="지출 종류" hint="한 번 고르면 연속 입력 동안 고정됩니다">
+          <Field label="지출 종류" hint="저장하면 다시 종류 선택으로 돌아옵니다">
             <Combobox
               options={typeOptions}
               value={typeKey}
               onChange={setTypeKey}
-              onSelected={focusDesc}
+              onSelected={handleTypeSelected}
+              inputRef={typeRef}
               placeholder="지출 종류 검색..."
             />
           </Field>
@@ -179,30 +241,98 @@ export default function ExpenseInputClient() {
         </form>
       </div>
 
-      {/* ── 이달 내역 ── */}
+      {/* ── 금일 내역 (수정/삭제) ── */}
       <div className="w-full lg:w-80">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-900">이달의 지출</h2>
-            <span className="text-xs text-gray-400">{month}</span>
+            <h2 className="text-base font-bold text-gray-900">금일의 지출</h2>
+            <span className="text-xs text-gray-400">{formatDateKo(date)}</span>
           </div>
           <div className="flex items-center justify-between text-sm font-bold mb-4 pb-3 border-b border-gray-100">
             <span className="text-gray-600">합계</span>
-            <span className="text-rose-600">{monthTotal.toLocaleString()}원</span>
+            <span className="text-rose-600">{todayTotal.toLocaleString()}원</span>
           </div>
-          {monthList.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">이달 지출이 없습니다.</p>
+          {todayList.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">오늘 지출이 없습니다.</p>
           ) : (
-            <ul className="space-y-2 max-h-96 overflow-y-auto">
-              {[...monthList].reverse().map((e) => (
-                <li key={e.rowIndex} className="flex items-start justify-between gap-2 py-2 border-b border-gray-50 last:border-0">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{e.description}</p>
-                    <p className="text-xs text-gray-400">{e.date} · {lookupName(expenseTypes, e.typeKey)}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">
-                    {parseAmount(e.amount).toLocaleString()}원
-                  </span>
+            <ul className="space-y-1 max-h-[28rem] overflow-y-auto">
+              {[...todayList].reverse().map((e) => (
+                <li key={e.rowIndex} className="py-2 border-b border-gray-50 last:border-0">
+                  {editingRow === e.rowIndex ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-gray-400">{lookupName(expenseTypes, e.typeKey)}</p>
+                      <input
+                        value={editDescription}
+                        onChange={(ev) => setEditDescription(ev.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        placeholder="내역"
+                      />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
+                        onChange={(ev) => setEditAmount(ev.target.value.replace(/[^\d]/g, ''))}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        placeholder="금액"
+                      />
+                      <input
+                        value={editNote}
+                        onChange={(ev) => setEditNote(ev.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        placeholder="비고"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => saveEdit(e)}
+                          className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg py-1.5 text-xs font-medium transition-colors"
+                        >저장</button>
+                        <button
+                          type="button"
+                          onClick={cancelEdit}
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg py-1.5 text-xs font-medium transition-colors"
+                        >취소</button>
+                      </div>
+                    </div>
+                  ) : confirmingRow === e.rowIndex ? (
+                    <div className="flex items-center justify-between gap-2 bg-rose-50 rounded-lg px-2 py-1.5">
+                      <span className="text-xs text-rose-700 min-w-0 truncate">{e.description} 삭제할까요?</span>
+                      <span className="flex items-center gap-1.5 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => removeEntry(e)}
+                          className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-md text-xs font-medium transition-colors"
+                        >삭제</button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingRow(null)}
+                          className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                        >취소</button>
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{e.description}</p>
+                        <p className="text-xs text-gray-400 truncate">{lookupName(expenseTypes, e.typeKey)}{e.note ? ` · ${e.note}` : ''}</p>
+                      </div>
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <span className="text-sm font-semibold text-gray-800">{parseAmount(e.amount).toLocaleString()}원</span>
+                        <button
+                          type="button"
+                          onClick={() => startEdit(e)}
+                          className="ml-1 p-1 text-gray-300 hover:text-blue-500 transition-colors"
+                          title="수정"
+                        >✏️</button>
+                        <button
+                          type="button"
+                          onClick={() => { setEditingRow(null); setError(null); setConfirmingRow(e.rowIndex) }}
+                          className="p-1 text-gray-300 hover:text-rose-500 transition-colors"
+                          title="삭제"
+                        >🗑️</button>
+                      </div>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

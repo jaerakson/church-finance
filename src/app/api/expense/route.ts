@@ -4,11 +4,13 @@ import { ExpenseFormData } from '@/lib/types'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
+  const dateFilter = searchParams.get('date')
   const monthFilter = searchParams.get('month')
   const yearFilter = searchParams.get('year')
   try {
     let data = await getExpenses()
-    if (monthFilter) data = data.filter((e) => e.date?.startsWith(monthFilter))
+    if (dateFilter) data = data.filter((e) => e.date === dateFilter)
+    else if (monthFilter) data = data.filter((e) => e.date?.startsWith(monthFilter))
     else if (yearFilter && yearFilter !== 'all') data = data.filter((e) => e.date?.startsWith(yearFilter))
     return NextResponse.json({ success: true, data })
   } catch (e) {
