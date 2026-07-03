@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Member, Offering } from '@/lib/types'
 import { lookupName } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
@@ -24,12 +25,15 @@ function parseAmount(v: string) {
 
 export default function OfferingInputClient({ members: initialMembers }: Props) {
   const { offeringTypes } = useLookups()
+  const searchParams = useSearchParams()
+  const urlDate = searchParams.get('date')
+
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const memberOptions: ComboOption[] = members.map((m) => ({ value: m.key, label: m.name }))
   const typeOptions: ComboOption[] = offeringTypes.map((t) => ({ value: t.key, label: t.name }))
   const memberMap = Object.fromEntries(members.map((m) => [m.key, m.name]))
 
-  const [date, setDate] = useState(today())
+  const [date, setDate] = useState(urlDate || today())
   const [typeKey, setTypeKey] = useState('')
   const [memberKey, setMemberKey] = useState('')
   const [memberQuery, setMemberQuery] = useState('')
@@ -43,6 +47,11 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [selectedFilterType, setSelectedFilterType] = useState<string | null>(null)
+
+  const handleFilterToggle = (key: string) => {
+    setSelectedFilterType((prev) => (prev === key ? null : key))
+  }
 
   // 키보드 연속 입력용 포커스 제어
   const memberInputRef = useRef<HTMLInputElement | null>(null)
@@ -356,26 +365,58 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
 
           {/* 종류별 소계 */}
           {byType.length > 0 && (
-            <div className="mb-4 space-y-1.5">
-              {byType.map((t) => (
-                <div key={t.key} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">{t.name} ({t.count}명)</span>
-                  <span className="font-medium text-gray-800">{t.total.toLocaleString()}원</span>
-                </div>
-              ))}
-              <div className="border-t border-gray-100 pt-2 flex items-center justify-between text-sm font-bold">
-                <span className="text-gray-700">합계</span>
+            <div className="mb-4 space-y-1 bg-gray-50/50 p-2 rounded-xl border border-gray-100 print:hidden select-none">
+              {byType.map((t) => {
+                const isSelected = selectedFilterType === t.key
+                return (
+                  <div 
+                    key={t.key} 
+                    onClick={() => handleFilterToggle(t.key)}
+                    className={`flex items-center justify-between text-xs py-1 px-1.5 rounded-lg cursor-pointer transition-all ${
+                      isSelected 
+                        ? 'bg-blue-600 text-white font-semibold shadow-sm' 
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                    title={isSelected ? '클릭하여 필터 해제' : `${t.name} 항목만 아래 리스트에 보기`}
+                  >
+                    <span className={isSelected ? 'text-white' : 'text-gray-500'}>
+                      {t.name} ({t.count}명)
+                    </span>
+                    <span className="font-semibold">{t.total.toLocaleString()}원</span>
+                  </div>
+                )
+              })}
+              <div className="border-t border-gray-200/80 pt-1.5 mt-1 flex items-center justify-between text-xs font-bold px-1.5">
+                <span className="text-gray-700">오늘 합계</span>
                 <span className="text-blue-600">{todayTotal.toLocaleString()}원</span>
               </div>
             </div>
           )}
 
           {/* 개별 내역 (수정/삭제) */}
+          <div className="flex items-center justify-between mb-2 mt-4 pb-1 border-b border-gray-100">
+            <span className="text-xs font-bold text-gray-700">
+              세부 내역 {selectedFilterType ? `(${lookupName(offeringTypes, selectedFilterType)})` : '(전체)'}
+            </span>
+            {selectedFilterType && (
+              <button 
+                type="button"
+                onClick={() => setSelectedFilterType(null)}
+                className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline bg-blue-50 px-2 py-0.5 rounded font-medium"
+              >
+                전체보기 ✕
+              </button>
+            )}
+          </div>
+
           {todayList.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-4">입력된 내역이 없습니다.</p>
           ) : (
             <ul className="space-y-1 max-h-[28rem] overflow-y-auto">
-              {[...todayList].reverse().map((o) => (
+              {[...todayList]
+                .reverse()
+                .filter((o) => !selectedFilterType || o.typeKey === selectedFilterType)
+                .map((o) => (
                 <li key={o.rowIndex} className="py-2 border-b border-gray-50 last:border-0">
                   {editingRow === o.rowIndex ? (
                     <div className="space-y-2">
@@ -431,12 +472,16 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                       </span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-2">
+                    <div 
+                      onClick={() => startEdit(o)}
+                      className="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50/70 p-1.5 rounded-lg transition-colors group"
+                      title="클릭하여 수정하기"
+                    >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{memberMap[o.memberKey] ?? o.memberKey}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{memberMap[o.memberKey] ?? o.memberKey}</p>
                         <p className="text-xs text-gray-400 truncate">{lookupName(offeringTypes, o.typeKey)}{o.note ? ` · ${o.note}` : ''}</p>
                       </div>
-                      <div className="flex items-center gap-1 whitespace-nowrap">
+                      <div className="flex items-center gap-1 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <span className="text-sm font-semibold text-gray-800">{parseAmount(o.amount).toLocaleString()}원</span>
                         <button
                           type="button"

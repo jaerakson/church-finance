@@ -28,8 +28,10 @@ const navGroups = [
     label: '재정 상세',
     items: [
       { href: '/finance/summary', label: '재정집계표', icon: '📈' },
+      { href: '/finance/status', label: '재정현황표', icon: '📋' },
       { href: '/finance/budget', label: '예산 관리', icon: '🎯' },
       { href: '/finance/income', label: '수입재정집계표', icon: '📊' },
+      { href: '/finance/expense-summary', label: '지출재정집계표', icon: '📉' },
       { href: '/finance/offerings', label: '헌금 상세', icon: '📄' },
       { href: '/finance/expenses', label: '지출 상세', icon: '📑' },
       { href: '/finance/members', label: '성도별 헌금', icon: '🧾' },
@@ -67,7 +69,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <LookupProvider>
     <div className="min-h-screen">
       {/* 모바일 상단바 */}
-      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-100 z-30 flex items-center gap-3 px-4 shadow-sm">
+      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-100 z-30 flex items-center gap-3 px-4 shadow-sm print:hidden">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -81,7 +83,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 오버레이 (모바일 드로어 열렸을 때) */}
       {open && (
-        <div className="lg:hidden fixed inset-0 bg-black/30 z-40" onClick={() => setOpen(false)} />
+        <div className="lg:hidden fixed inset-0 bg-black/30 z-40 print:hidden" onClick={() => setOpen(false)} />
       )}
 
       {/* 데스크톱: 접힌 상태일 때 다시 여는 버튼 */}
@@ -90,7 +92,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => toggleCollapsed(false)}
           aria-label="사이드바 열기"
-          className="hidden lg:flex fixed top-4 left-4 z-30 w-10 h-10 items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50"
+          className="hidden lg:flex fixed top-4 left-4 z-30 w-10 h-10 items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50 print:hidden"
         >
           <span className="text-lg">☰</span>
         </button>
@@ -98,7 +100,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 사이드바 — 모바일: 오프캔버스, 데스크톱: 고정(접기 가능) */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white border-r border-gray-100 shadow-sm z-50 flex flex-col transition-transform duration-200 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}`}
+        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white border-r border-gray-100 shadow-sm z-50 flex flex-col transition-transform duration-200 print:hidden ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}`}
       >
         <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
           <div>
@@ -157,7 +159,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* 본문 — 모바일: 전체폭 + 상단바 여백, 데스크톱: 사이드바 옆(접으면 전체폭) */}
-      <main className={`${collapsed ? 'lg:ml-0' : 'lg:ml-56'} pt-14 lg:pt-0 p-4 lg:p-8 min-h-screen transition-[margin] duration-200`}>
+      <main className={`${collapsed ? 'lg:ml-0' : 'lg:ml-56'} pt-14 lg:pt-0 p-4 lg:p-8 min-h-screen transition-[margin] duration-200 print:ml-0 print:p-0 print:pt-0`}>
         {children}
       </main>
     </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Expense } from '@/lib/types'
 import { lookupName } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
@@ -15,8 +16,11 @@ function parseAmount(v: string) {
 
 export default function ExpenseInputClient() {
   const { expenseTypes } = useLookups()
+  const searchParams = useSearchParams()
+  const urlDate = searchParams.get('date')
+
   const typeOptions: ComboOption[] = expenseTypes.map((t) => ({ value: t.key, label: t.name }))
-  const [date, setDate] = useState(today())
+  const [date, setDate] = useState(urlDate || today())
   const [typeKey, setTypeKey] = useState('')
   const [description, setDescription] = useState('')
   const [amount, setAmount] = useState('')
