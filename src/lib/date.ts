@@ -8,6 +8,13 @@ export function currentYear(): string {
   return String(new Date().getFullYear())
 }
 
+export function currentHalf(): '1' | '2' {
+  const d = new Date()
+  // 한국 시간(KST)은 UTC+9 이므로 9시간(9 * 60 * 60 * 1000ms)을 더해 계산합니다.
+  const kstMonth = new Date(d.getTime() + 9 * 60 * 60 * 1000).getUTCMonth() + 1
+  return kstMonth >= 7 ? '2' : '1'
+}
+
 export function currentMonth(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
