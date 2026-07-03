@@ -19,7 +19,7 @@ export default function ViewSwitch() {
     <select
       value={current}
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium"
+      className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 font-medium"
     >
       <option value="list">기본 보기</option>
       <option value="grid">표 편집 (행=이름·열=날짜)</option>

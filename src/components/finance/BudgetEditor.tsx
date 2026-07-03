@@ -113,15 +113,15 @@ function KindSection({
   if (etc.length) groups.push({ category: '기타', items: etc })
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 font-bold text-gray-800">{title}</div>
-      <div className="divide-y divide-gray-50">
+    <div className="rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 font-bold text-gray-800 dark:text-gray-100">{title}</div>
+      <div className="divide-y divide-gray-50 dark:divide-gray-800">
         {groups.map((g) => (
           <div key={g.category}>
-            <p className="px-4 py-1.5 bg-gray-50/70 text-xs font-bold text-gray-500">{g.category}</p>
+            <p className="px-4 py-1.5 bg-gray-50 dark:bg-gray-950/70 dark:bg-gray-800/50 text-xs font-bold text-gray-500 dark:text-gray-400">{g.category}</p>
             {g.items.map((t) => (
               <div key={t.key} className="flex items-center justify-between gap-3 px-4 py-1.5">
-                <span className="text-sm text-gray-700">{t.name}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t.name}</span>
                 <input
                   key={values[t.key] ?? 0}
                   type="text"
@@ -134,14 +134,14 @@ function KindSection({
                   }}
                   onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
                   placeholder="0"
-                  className={`w-32 text-right text-sm rounded px-2 py-1 border border-gray-200 focus:border-blue-400 focus:outline-none focus:ring-1 ${accent === 'rose' ? 'focus:ring-rose-300' : 'focus:ring-blue-300'}`}
+                  className={`w-32 text-right text-sm rounded px-2 py-1 border border-gray-200 dark:border-gray-700 focus:border-blue-400 focus:outline-none focus:ring-1 ${accent === 'rose' ? 'focus:ring-rose-300' : 'focus:ring-blue-300'} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
                 />
               </div>
             ))}
           </div>
         ))}
       </div>
-      <div className={`flex items-center justify-between px-4 py-2.5 font-bold border-t-2 border-gray-200 ${grand}`}>
+      <div className={`flex items-center justify-between px-4 py-2.5 font-bold border-t-2 border-gray-200 dark:border-gray-700 ${grand}`}>
         <span>합계</span>
         <span>{total.toLocaleString()}원</span>
       </div>

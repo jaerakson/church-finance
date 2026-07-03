@@ -69,7 +69,7 @@ export default function RestoreForm({ serviceEmail, defaultTargetId }: Props) {
           <li>구글 드라이브에서 <b>새 빈 스프레드시트</b>를 만듭니다.</li>
           <li>그 시트를 아래 서비스 계정 이메일에 <b>편집자로 공유</b>합니다:</li>
         </ol>
-        <code className="block mt-1 px-2 py-1 bg-white border border-blue-200 rounded text-blue-900 break-all">{serviceEmail || '(서비스 계정 이메일 미설정)'}</code>
+        <code className="block mt-1 px-2 py-1 bg-white dark:bg-gray-900 border border-blue-200 rounded text-blue-900 break-all">{serviceEmail || '(서비스 계정 이메일 미설정)'}</code>
         <ol className="list-decimal pl-5 space-y-1 text-blue-800" start={3}>
           <li>새 시트 URL의 <b>ID</b>(/d/ 와 /edit 사이 문자열)를 아래에 붙여넣습니다.</li>
           <li>백업 JSON 파일을 올리고 복원합니다.</li>
@@ -83,7 +83,7 @@ export default function RestoreForm({ serviceEmail, defaultTargetId }: Props) {
           value={targetId}
           onChange={(e) => setTargetId(e.target.value)}
           placeholder="예: 1dShu54UEED..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-400">기본값은 현재 앱이 사용 중인 시트입니다. 새 시트에 복원하려면 그 시트의 ID로 바꾸세요.</p>
       </div>
@@ -95,7 +95,7 @@ export default function RestoreForm({ serviceEmail, defaultTargetId }: Props) {
           type="file"
           accept="application/json,.json"
           onChange={(e) => onFile(e.target.files?.[0])}
-          className="block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+          className="block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
         />
         {fileName && backup && <p className="text-xs text-emerald-600">✓ {fileName} · 시트 {sheetCount}개 인식</p>}
       </div>
@@ -111,7 +111,7 @@ export default function RestoreForm({ serviceEmail, defaultTargetId }: Props) {
           value={confirmText}
           onChange={(e) => setConfirmText(e.target.value)}
           placeholder="복원"
-          className="w-40 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+          className="w-40 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
         />
       </div>
 

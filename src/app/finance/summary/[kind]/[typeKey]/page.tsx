@@ -165,7 +165,7 @@ function DetailShell({
             <span className={`text-xs font-semibold uppercase tracking-wider ${accent}`}>{kindLabel}</span>
             <span className="text-xs text-gray-400">{periodLabel}</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mt-0.5">{typeName}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">{typeName}</h1>
           <p className="text-sm text-gray-500 mt-1">
             총 {count.toLocaleString()}건 · <span className={`font-semibold ${accent}`}>{total.toLocaleString()}원</span>
           </p>

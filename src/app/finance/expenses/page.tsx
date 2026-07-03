@@ -55,7 +55,7 @@ export default async function ExpenseDetailPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">지출 상세</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">지출 상세</h1>
           <p className="text-sm text-gray-500 mt-1">총 {rows.length.toLocaleString()}건 · {total.toLocaleString()}원</p>
         </div>
         <div className="flex items-center gap-2">

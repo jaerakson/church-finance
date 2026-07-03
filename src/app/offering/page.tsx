@@ -45,7 +45,7 @@ export default async function OfferingPage({ searchParams }: Props) {
       {/* 헤더 */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">헌금 내역</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">헌금 내역</h1>
           <p className="text-sm text-gray-500 mt-1">총 {offerings.length}건 · {grandTotal.toLocaleString()}원</p>
         </div>
         <div className="flex items-center gap-3">
@@ -63,9 +63,9 @@ export default async function OfferingPage({ searchParams }: Props) {
       {totalByType.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {totalByType.map((t) => (
-            <div key={t.key} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+            <div key={t.key} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-4">
               <p className="text-xs text-gray-400 mb-1">{t.name}</p>
-              <p className="text-base font-bold text-gray-900">{t.total.toLocaleString()}원</p>
+              <p className="text-base font-bold text-gray-900 dark:text-gray-100">{t.total.toLocaleString()}원</p>
             </div>
           ))}
         </div>

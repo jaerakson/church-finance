@@ -28,7 +28,7 @@ export default function CsvDownloadButton({ filename, headers, rows, label = 'CS
       type="button"
       onClick={onClick}
       disabled={rows.length === 0}
-      className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-950 disabled:opacity-50 text-gray-700 rounded-lg text-sm font-medium transition-colors"
     >
       <span>⬇</span> {label}
       <span className="text-xs text-gray-400">({rows.length.toLocaleString()})</span>

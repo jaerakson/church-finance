@@ -30,7 +30,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
   const columns = useMemo(() => [
     helper.accessor('name', {
       header: '이름',
-      cell: (info) => <span className="font-medium text-gray-900">{info.getValue()}</span>,
+      cell: (info) => <span className="font-medium text-gray-900 dark:text-gray-100">{info.getValue()}</span>,
     }),
     helper.accessor('positionKey', {
       header: '직분',
@@ -75,7 +75,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder="이름 검색..."
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <LookupSelect
           label="직분"
@@ -103,11 +103,11 @@ export default function MemberTable({ data }: { data: Member[] }) {
       </div>
 
       {/* 테이블 */}
-      <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
         <table className="w-full text-sm">
           <thead>
             {table.getHeaderGroups().map((hg) => (
-              <tr key={hg.id} className="bg-gray-50 border-b border-gray-100">
+              <tr key={hg.id} className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
                 {hg.headers.map((header) => (
                   <th
                     key={header.id}
@@ -167,7 +167,7 @@ function PageBtn({ onClick, disabled, children }: { onClick: () => void; disable
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-950 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       {children}
     </button>
@@ -183,7 +183,7 @@ function LookupSelect({ label, options, onChange }: {
     <select
       defaultValue=""
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
     >
       <option value="">전체 {label}</option>
       {options.map((o) => <option key={o.key} value={o.key}>{o.name}</option>)}

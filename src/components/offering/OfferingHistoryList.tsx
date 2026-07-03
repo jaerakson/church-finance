@@ -118,7 +118,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
 
   if (sortedDates.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center text-gray-400 text-sm">
         데이터가 없습니다.
       </div>
     )
@@ -153,12 +153,12 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
         }).filter((g) => g.list.length > 0)
 
         return (
-          <div key={date} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div key={date} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             {/* 날짜 헤더 (클릭) */}
             <button
               type="button"
               onClick={() => toggleDate(date)}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:bg-gray-950 transition-colors"
             >
               <span className="flex items-center gap-2">
                 <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
@@ -170,17 +170,17 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
 
             {/* 펼침: 헌금 종류별 전체금액 */}
             {isOpen && (
-              <div className="border-t border-gray-100 bg-gray-50/50 px-4 py-3 space-y-2">
+              <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50 px-4 py-3 space-y-2">
                 {typeGroups.map((g) => {
                   const typeOpen = openType === `${date}__${g.key}`
                   return (
-                    <div key={g.key} className="bg-white rounded-lg border border-gray-100">
+                    <div key={g.key} className="bg-white dark:bg-gray-900 rounded-lg border border-gray-100 dark:border-gray-800">
                       <div className="flex items-center justify-between px-3 py-2.5">
                         <span className="text-sm font-medium text-gray-700">
                           {g.name} <span className="text-xs text-gray-400">({g.list.length}명)</span>
                         </span>
                         <span className="flex items-center gap-3">
-                          <span className="text-sm font-semibold text-gray-900">{g.total.toLocaleString()}원</span>
+                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{g.total.toLocaleString()}원</span>
                           <button
                             type="button"
                             onClick={() => toggleType(date, g.key)}
@@ -198,7 +198,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                             <li key={o.rowIndex} className="px-3 py-2 text-sm">
                               {editingRow === o.rowIndex ? (
                                 <div className="space-y-2">
-                                  <p className="text-sm font-medium text-gray-900">{memberMap[o.memberKey] ?? o.memberKey}</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{memberMap[o.memberKey] ?? o.memberKey}</p>
 
                                   {/* 개인화 영역: 금액 */}
                                   {amountChips(o.memberKey, o.typeKey).length > 0 && (
@@ -213,7 +213,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                             className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
                                               editAmount === a
                                                 ? 'bg-blue-600 text-white border-blue-600'
-                                                : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                                                : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-300'
                                             }`}
                                           >{Number(a).toLocaleString()}원</button>
                                         ))}
@@ -225,7 +225,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                     inputMode="numeric"
                                     value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
                                     onChange={(e) => setEditAmount(e.target.value.replace(/[^\d]/g, ''))}
-                                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="금액"
                                   />
 
@@ -240,7 +240,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                           className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
                                             editNote === n
                                               ? 'bg-gray-700 text-white border-gray-700'
-                                              : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                              : 'bg-white dark:bg-gray-900 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400'
                                           }`}
                                         >{n}</button>
                                       ))}
@@ -249,7 +249,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                   <input
                                     value={editNote}
                                     onChange={(e) => setEditNote(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="비고"
                                   />
                                   <div className="flex gap-2">
@@ -263,7 +263,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                       type="button"
                                       onClick={cancelEdit}
                                       disabled={busy}
-                                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg py-1.5 text-xs font-medium transition-colors"
+                                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-lg py-1.5 text-xs font-medium transition-colors"
                                     >취소</button>
                                   </div>
                                 </div>
@@ -281,7 +281,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
                                       type="button"
                                       onClick={() => setConfirmingRow(null)}
                                       disabled={busy}
-                                      className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                                      className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium transition-colors"
                                     >취소</button>
                                   </span>
                                 </div>
@@ -325,7 +325,7 @@ export default function OfferingHistoryList({ offerings, memberMap }: Props) {
         <button
           type="button"
           onClick={() => setVisibleCount((c) => c + INITIAL_COUNT)}
-          className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 bg-white rounded-xl border border-gray-100 shadow-sm transition-colors"
+          className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm transition-colors"
         >
           더보기 ({sortedDates.length - visibleCount}일 더)
         </button>

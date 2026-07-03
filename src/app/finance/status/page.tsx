@@ -194,7 +194,7 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
       {/* 화면 출력용 헤더 */}
       <div className="flex items-center justify-between flex-wrap gap-3 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">재정현황표</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">재정현황표</h1>
           <p className="text-sm text-gray-500 mt-1">{dateLabel} 기준</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -215,31 +215,31 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
       </div>
 
       {/* 요약 현황 보드 (표 형태의 정갈한 디자인, 모바일 1열, 데스크톱/인쇄 3열 동시 지원) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-100 rounded-xl p-4 bg-gray-50/50 print:bg-white print:border-gray-300 print:grid-cols-3 print:gap-4 print:p-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-100 dark:border-gray-800 rounded-xl p-4 bg-gray-50 dark:bg-gray-950/50 print:bg-white dark:bg-gray-900 print:border-gray-300 print:grid-cols-3 print:gap-4 print:p-3">
         {/* 수입 요약 */}
         <div className="space-y-1 text-xs md:text-sm">
           <span className="block text-xs font-semibold text-gray-400 print:text-black print:font-bold">수입 요약 (헌금 수납)</span>
-          <p className="text-gray-600 print:text-black">총 수납액: <span className="font-semibold text-gray-900 print:text-black">{income.grand.current.toLocaleString()}원</span></p>
+          <p className="text-gray-600 dark:text-gray-300 print:text-black">총 수납액: <span className="font-semibold text-gray-900 dark:text-gray-100 print:text-black">{income.grand.current.toLocaleString()}원</span></p>
           <p className="text-gray-400 text-xs print:text-black">- 건축헌금: {buildOfferingAmt.toLocaleString()}원</p>
-          <div className="border-t border-dashed border-gray-200 my-1 print:border-gray-400"></div>
+          <div className="border-t border-dashed border-gray-200 dark:border-gray-700 my-1 print:border-gray-400"></div>
           <p className="font-bold text-emerald-700 print:text-black text-xs md:text-sm">순수 수입: {netIncomeAmt.toLocaleString()}원</p>
         </div>
 
         {/* 지출 요약 */}
         <div className="space-y-1 text-xs md:text-sm">
           <span className="block text-xs font-semibold text-gray-400 print:text-black print:font-bold">지출 요약 (지급 지출)</span>
-          <p className="text-gray-600 print:text-black">총 지출액: <span className="font-semibold text-gray-900 print:text-black">{expense.grand.current.toLocaleString()}원</span></p>
+          <p className="text-gray-600 dark:text-gray-300 print:text-black">총 지출액: <span className="font-semibold text-gray-900 dark:text-gray-100 print:text-black">{expense.grand.current.toLocaleString()}원</span></p>
           <p className="text-gray-400 text-xs print:text-black">(예배비, 선교비, 교육비, 관리비)</p>
-          <div className="border-t border-dashed border-gray-200 my-1 print:border-gray-400"></div>
+          <div className="border-t border-dashed border-gray-200 dark:border-gray-700 my-1 print:border-gray-400"></div>
           <p className="font-bold text-rose-600 print:text-black text-xs md:text-sm">실지출액: {expense.grand.current.toLocaleString()}원</p>
         </div>
 
         {/* 금회 차액 */}
         <div className="space-y-1 text-xs md:text-sm">
           <span className="block text-xs font-semibold text-gray-400 print:text-black print:font-bold">당일 잔액 (순차액)</span>
-          <p className="text-gray-600 print:text-black">순수 수입: {netIncomeAmt.toLocaleString()}원</p>
+          <p className="text-gray-600 dark:text-gray-300 print:text-black">순수 수입: {netIncomeAmt.toLocaleString()}원</p>
           <p className="text-gray-400 text-xs print:text-black">- 실지출액: {expense.grand.current.toLocaleString()}원</p>
-          <div className="border-t border-dashed border-gray-200 my-1 print:border-gray-400"></div>
+          <div className="border-t border-dashed border-gray-200 dark:border-gray-700 my-1 print:border-gray-400"></div>
           <p className={`font-extrabold text-xs md:text-sm ${netIncomeAmt - expense.grand.current >= 0 ? 'text-blue-700' : 'text-rose-600'} print:text-black`}>
             당일 차액: {(netIncomeAmt - expense.grand.current).toLocaleString()}원
           </p>

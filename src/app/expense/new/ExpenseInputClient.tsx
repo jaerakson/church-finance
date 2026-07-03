@@ -178,8 +178,8 @@ export default function ExpenseInputClient() {
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* ── 입력 폼 ── */}
-      <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-        <h2 className="text-base font-bold text-gray-900">지출 입력</h2>
+      <div className="flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 space-y-5">
+        <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">지출 입력</h2>
 
         {error && <div className="bg-rose-50 text-rose-700 border border-rose-200 rounded-xl px-4 py-3 text-sm">{error}</div>}
         {success && <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl px-4 py-3 text-sm font-medium">✓ 저장되었습니다.</div>}
@@ -253,13 +253,13 @@ export default function ExpenseInputClient() {
 
       {/* ── 금일 내역 (수정/삭제) ── */}
       <div className="w-full lg:w-80">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-900">금일의 지출</h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">금일의 지출</h2>
             <span className="text-xs text-gray-400">{formatDateKo(date)}</span>
           </div>
-          <div className="flex items-center justify-between text-sm font-bold mb-4 pb-3 border-b border-gray-100">
-            <span className="text-gray-600">합계</span>
+          <div className="flex items-center justify-between text-sm font-bold mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
+            <span className="text-gray-600 dark:text-gray-300">합계</span>
             <span className="text-rose-600">{todayTotal.toLocaleString()}원</span>
           </div>
           {todayList.length === 0 ? (
@@ -274,7 +274,7 @@ export default function ExpenseInputClient() {
                       <input
                         value={editDescription}
                         onChange={(ev) => setEditDescription(ev.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
                         placeholder="내역"
                       />
                       <input
@@ -282,13 +282,13 @@ export default function ExpenseInputClient() {
                         inputMode="numeric"
                         value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
                         onChange={(ev) => setEditAmount(ev.target.value.replace(/[^\d]/g, ''))}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-rose-500"
                         placeholder="금액"
                       />
                       <input
                         value={editNote}
                         onChange={(ev) => setEditNote(ev.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
                         placeholder="비고"
                       />
                       <div className="flex gap-2">
@@ -300,7 +300,7 @@ export default function ExpenseInputClient() {
                         <button
                           type="button"
                           onClick={cancelEdit}
-                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg py-1.5 text-xs font-medium transition-colors"
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-lg py-1.5 text-xs font-medium transition-colors"
                         >취소</button>
                       </div>
                     </div>
@@ -316,14 +316,14 @@ export default function ExpenseInputClient() {
                         <button
                           type="button"
                           onClick={() => setConfirmingRow(null)}
-                          className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium transition-colors"
                         >취소</button>
                       </span>
                     </div>
                   ) : (
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{e.description}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{e.description}</p>
                         <p className="text-xs text-gray-400 truncate">{lookupName(expenseTypes, e.typeKey)}{e.note ? ` · ${e.note}` : ''}</p>
                       </div>
                       <div className="flex items-center gap-1 whitespace-nowrap">
@@ -353,7 +353,7 @@ export default function ExpenseInputClient() {
   )
 }
 
-const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white'
+const inputCls = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white dark:bg-gray-900'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind v4 클래스 기반 다크모드 베리언트 활성화 */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -12,5 +15,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-/* 이 앱은 라이트 테마 전용입니다. 레이아웃의 bg-gray-50 / text-gray-900 와
-   Inter 폰트(className)가 적용되도록 body 강제 스타일은 두지 않습니다. */
+/* 다크모드 지원을 전면 활성화합니다. 
+   레이아웃의 bg-gray-50 / text-gray-900 와 Inter 폰트가 기본 적용되며,
+   html 노드에 .dark 클래스가 있는 경우 다크모드 스타일이 활성화됩니다. */
+

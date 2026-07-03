@@ -65,7 +65,7 @@ export default async function MemberOfferingPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">성도별 헌금 내역</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">성도별 헌금 내역</h1>
           <p className="text-sm text-gray-500 mt-1">{list.length.toLocaleString()}명 · {grandTotal.toLocaleString()}원</p>
         </div>
         <div className="flex items-center gap-2">

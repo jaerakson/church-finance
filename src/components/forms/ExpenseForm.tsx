@@ -56,7 +56,7 @@ export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {error && <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-lg px-4 py-3 text-sm">{error}</div>}
+      {error && <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 rounded-lg px-4 py-3 text-sm">{error}</div>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="날짜" error={errors.date?.message}>
           <input {...register('date')} type="date" className={inputClass} />
@@ -83,7 +83,7 @@ export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
           {submitting ? '저장 중...' : mode === 'create' ? '지출 입력' : '수정하기'}
         </button>
         <button type="button" onClick={() => router.back()}
-          className="px-6 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-lg text-sm font-medium transition-colors">
+          className="px-6 py-2.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors">
           취소
         </button>
       </div>
@@ -91,14 +91,14 @@ export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
   )
 }
 
-const inputClass = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white'
+const inputClass = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 dark:text-gray-50'
 
 function Field({ label, error, children, className }: { label: string; error?: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1 ${className ?? ''}`}>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
       {children}
-      {error && <p className="text-xs text-rose-500">{error}</p>}
+      {error && <p className="text-xs text-rose-500 dark:text-rose-400">{error}</p>}
     </div>
   )
 }

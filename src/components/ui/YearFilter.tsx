@@ -26,7 +26,7 @@ export default function YearFilter({ years, allowAll = true }: Props) {
     <select
       value={current === '' ? (allowAll ? 'all' : (years[0] ?? '')) : current}
       onChange={(e) => onChange(e.target.value)}
-      className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium"
+      className="border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 font-medium text-gray-900 dark:text-gray-100"
     >
       {allowAll && <option value="all">전체 연도</option>}
       {years.map((y) => (

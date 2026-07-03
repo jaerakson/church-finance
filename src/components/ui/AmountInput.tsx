@@ -82,11 +82,11 @@ export default function AmountInput({ value, onChange, suggestions, placeholder,
         onChange={(e) => { onChange(e.target.value.replace(/[^\d]/g, '')); setOpen(true) }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        className={`w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 ${ring} bg-white`}
+        className={`w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 ${ring} bg-white dark:bg-gray-900`}
         autoComplete="off"
       />
       {open && filtered.length > 0 && (
-        <ul className="absolute z-20 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
+        <ul className="absolute z-20 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
           {filtered.map((s, idx) => (
             <li
               key={s.amount}

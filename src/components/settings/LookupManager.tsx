@@ -102,7 +102,7 @@ export default function LookupManager() {
     finally { setBusy(false) }
   }
 
-  const inputCls = 'border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white'
+  const inputCls = 'border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900'
 
   return (
     <div className="space-y-4">
@@ -113,7 +113,7 @@ export default function LookupManager() {
             key={t.kind}
             type="button"
             onClick={() => setKind(t.kind)}
-            className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${kind === t.kind ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300'}`}
+            className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${kind === t.kind ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-blue-300'}`}
           >
             {t.label}
           </button>
@@ -123,7 +123,7 @@ export default function LookupManager() {
       {error && <div className="bg-rose-50 text-rose-700 border border-rose-200 rounded-xl px-4 py-3 text-sm">{error}</div>}
 
       {/* 추가 */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-wrap items-end gap-3">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-4 flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[180px]">
           <label className="block text-xs text-gray-500 mb-1">{tab.label} 이름</label>
           <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="새 항목 이름" className={`${inputCls} w-full`} />
@@ -141,7 +141,7 @@ export default function LookupManager() {
       </div>
 
       {/* 목록 */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         {loading ? (
           <p className="text-center py-10 text-gray-400 text-sm">불러오는 중...</p>
         ) : items.length === 0 ? (
@@ -161,21 +161,21 @@ export default function LookupManager() {
                       </select>
                     )}
                     <button type="button" onClick={() => saveEdit(it)} disabled={busy} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-md text-xs font-medium">저장</button>
-                    <button type="button" onClick={() => setEditKey(null)} disabled={busy} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md text-xs font-medium">취소</button>
+                    <button type="button" onClick={() => setEditKey(null)} disabled={busy} className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium">취소</button>
                   </div>
                 ) : confirmKey === it.key ? (
                   <div className="flex items-center justify-between gap-2 bg-rose-50 rounded-lg px-2 py-1.5">
                     <span className="text-xs text-rose-700">‘{it.name}’ 삭제할까요? (사용 중이면 거부됩니다)</span>
                     <span className="flex items-center gap-1.5 whitespace-nowrap">
                       <button type="button" onClick={() => remove(it)} disabled={busy} className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white rounded-md text-xs font-medium">삭제</button>
-                      <button type="button" onClick={() => setConfirmKey(null)} disabled={busy} className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium">취소</button>
+                      <button type="button" onClick={() => setConfirmKey(null)} disabled={busy} className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium">취소</button>
                     </span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 min-w-0">
                       <span className="text-xs text-gray-400 w-10">#{it.key}</span>
-                      <span className="text-sm font-medium text-gray-900 truncate">{it.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{it.name}</span>
                       {tab.hasCategory && it.categoryKey && <span className="text-xs text-gray-400">· {catName(it.categoryKey)}</span>}
                     </span>
                     <span className="flex items-center gap-1 whitespace-nowrap">

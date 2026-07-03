@@ -10,14 +10,14 @@ export default function BackupPage() {
   return (
     <div className="max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">데이터 백업 · 복원</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">데이터 백업 · 복원</h1>
         <p className="text-sm text-gray-500 mt-1">모든 시트(교인·헌금·지출·코드값·예산)를 JSON으로 백업하고, 필요 시 새 시트로 복원합니다.</p>
       </div>
 
       {/* 백업 */}
       <section className="space-y-3">
         <h2 className="text-base font-bold text-gray-800">백업</h2>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 space-y-4">
           <BackupButton />
           <ul className="text-xs text-gray-500 space-y-1 list-disc pl-4">
             <li>파일명에 백업 시각이 포함됩니다.</li>
@@ -31,7 +31,7 @@ export default function BackupPage() {
       <section className="space-y-3">
         <h2 className="text-base font-bold text-gray-800">복원 (새 시트로)</h2>
         <p className="text-sm text-gray-500">스프레드시트가 통째로 사라져 버전기록·휴지통으로도 복구할 수 없을 때, 새 빈 시트를 만들어 백업 데이터를 채워 넣습니다.</p>
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
           <RestoreForm serviceEmail={serviceEmail} defaultTargetId={currentId} />
         </div>
       </section>

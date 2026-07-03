@@ -24,7 +24,7 @@ export default async function MemberDetailPage({ params }: Props) {
           ← 목록으로
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{member.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{member.name}</h1>
           <div className="flex gap-2 mt-1">
             <Badge label={lookupName(positions, member.positionKey) || '-'} color="blue" />
             <Badge label={lookupName(departments, member.departmentKey) || '-'} color="green" />
@@ -32,7 +32,7 @@ export default async function MemberDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
         <MemberForm
           mode="edit"
           rowIndex={Number(rowIndex)}

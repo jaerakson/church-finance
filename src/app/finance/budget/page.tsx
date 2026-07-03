@@ -20,7 +20,7 @@ export default async function BudgetPage({ searchParams }: Props) {
           <Link href="/finance/summary" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
             ← 재정집계표로
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 mt-1">연간 예산 관리</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">연간 예산 관리</h1>
           <p className="text-sm text-gray-500 mt-1">{activeYear}년 항목별 예산을 입력하면 재정집계표에 반영됩니다. (입력 후 자동 저장)</p>
         </div>
         <Suspense>

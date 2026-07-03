@@ -61,17 +61,17 @@ export default async function DashboardPage({ searchParams }: Props) {
   const yearlyStats   = buildYearlyStats(allOfferings, allExpenses)
 
   const stats = [
-    { label: '총 교인 수',    value: `${members.length}명`,                               color: 'bg-blue-50 text-blue-700',       icon: '👥' },
-    { label: selectedYear === 'all' ? '누적 헌금' : `${selectedYear}년 헌금`, value: `${totalOffering.toLocaleString()}원`, color: 'bg-emerald-50 text-emerald-700', icon: '💰' },
-    { label: selectedYear === 'all' ? '누적 지출' : `${selectedYear}년 지출`, value: `${totalExpense.toLocaleString()}원`,  color: 'bg-rose-50 text-rose-700',       icon: '📤' },
-    { label: '잔액',          value: `${(totalOffering - totalExpense).toLocaleString()}원`, color: 'bg-amber-50 text-amber-700',     icon: '📊' },
+    { label: '총 교인 수',    value: `${members.length}명`,                               color: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300',       icon: '👥' },
+    { label: selectedYear === 'all' ? '누적 헌금' : `${selectedYear}년 헌금`, value: `${totalOffering.toLocaleString()}원`, color: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300', icon: '💰' },
+    { label: selectedYear === 'all' ? '누적 지출' : `${selectedYear}년 지출`, value: `${totalExpense.toLocaleString()}원`, color: 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300', icon: '📤' },
+    { label: '잔액',          value: `${(totalOffering - totalExpense).toLocaleString()}원`, color: 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300',     icon: '📊' },
   ]
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">대시보드</h1>
           <p className="text-sm text-gray-500 mt-1">검암중앙교회 재정 현황</p>
         </div>
         <Suspense>
@@ -88,12 +88,12 @@ export default async function DashboardPage({ searchParams }: Props) {
       {/* 통계 카드 */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div key={s.label} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
             <div className={`inline-flex items-center justify-center w-10 h-10 rounded-lg ${s.color} text-xl mb-3`}>
               {s.icon}
             </div>
             <p className="text-xs text-gray-500 font-medium">{s.label}</p>
-            <p className="text-xl font-bold text-gray-900 mt-0.5">{s.value}</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-0.5">{s.value}</p>
           </div>
         ))}
       </div>
@@ -102,23 +102,23 @@ export default async function DashboardPage({ searchParams }: Props) {
       {yearlyStats.length > 0 && (
         <div>
           <h2 className="text-base font-semibold text-gray-800 mb-3">연도별 재정 통계</h2>
-          <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">연도</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">헌금</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">지출</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">잔액</th>
+                <tr className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">연도</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">헌금</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">지출</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">잔액</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {yearlyStats.map((r) => (
-                  <tr key={r.year} className={`hover:bg-gray-50 transition-colors ${r.year === defYear ? 'bg-blue-50' : ''}`}>
-                    <td className="px-4 py-3 font-semibold text-gray-900">{r.year}년{r.year === defYear && <span className="ml-2 text-[10px] text-blue-500 font-normal">올해</span>}</td>
-                    <td className="px-4 py-3 text-right text-emerald-700 font-medium">{r.offering.toLocaleString()}원</td>
-                    <td className="px-4 py-3 text-right text-rose-600 font-medium">{r.expense.toLocaleString()}원</td>
-                    <td className={`px-4 py-3 text-right font-bold ${r.balance >= 0 ? 'text-gray-900' : 'text-rose-600'}`}>
+                  <tr key={r.year} className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${r.year === defYear ? 'bg-blue-50 dark:bg-blue-950' : 'dark:bg-gray-900'}`}>
+                    <td className="px-4 py-3 font-semibold text-gray-900 dark:text-gray-100">{r.year}년{r.year === defYear && <span className="ml-2 text-[10px] text-blue-500 dark:text-blue-400 font-normal">올해</span>}</td>
+                    <td className="px-4 py-3 text-right text-emerald-700 dark:text-emerald-300 font-medium">{r.offering.toLocaleString()}원</td>
+                    <td className="px-4 py-3 text-right text-rose-600 dark:text-rose-400 font-medium">{r.expense.toLocaleString()}원</td>
+                    <td className={`px-4 py-3 text-right font-bold ${r.balance >= 0 ? 'text-gray-900 dark:text-gray-100' : 'text-rose-600 dark:text-rose-400'}`}>
                       {r.balance.toLocaleString()}원
                     </td>
                   </tr>
@@ -132,7 +132,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       {/* 퀵 액션 */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { href: '/members',      label: '교인명부',  icon: '👥', cls: 'bg-white border border-gray-100 text-gray-900' },
+          { href: '/members',      label: '교인명부',  icon: '👥', cls: 'bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 text-gray-900 dark:text-gray-100' },
           { href: '/members/new',  label: '교인 등록', icon: '➕', cls: 'bg-blue-600 text-white' },
           { href: '/offering/new', label: '헌금 입력', icon: '💰', cls: 'bg-emerald-600 text-white' },
           { href: '/expense/new',  label: '지출 입력', icon: '📤', cls: 'bg-rose-600 text-white' },

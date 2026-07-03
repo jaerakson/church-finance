@@ -50,34 +50,34 @@ export default function StatusPivot({ title, subTitle, kind, sections, grand, gr
     : `/expense/new?date=${activeDate || ''}`
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm bg-white overflow-hidden print:border-gray-300">
-      <div className={`px-4 py-3 border-b border-gray-100 font-bold text-gray-800 ${titleBg} print:bg-gray-100 print:text-black print:border-gray-300 flex items-center justify-between flex-wrap gap-2`}>
+    <div className="rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 overflow-hidden print:border-gray-300">
+      <div className={`px-4 py-3 border-b border-gray-100 dark:border-gray-800 font-bold text-gray-800 dark:text-gray-100 ${titleBg} print:bg-gray-100 print:text-black print:border-gray-300 flex items-center justify-between flex-wrap gap-2`}>
         {/* 헤더 클릭 시 해당 일자 프리필이 설정된 입력 등록 페이지로 링크 이동 */}
         <Link 
           href={href} 
-          className="hover:underline flex items-center gap-1 group text-gray-900 hover:text-blue-600 transition-colors"
+          className="hover:underline flex items-center gap-1 group text-gray-900 dark:text-gray-100 hover:text-blue-600 transition-colors"
           title="클릭하여 해당 날짜 입력 등록 페이지로 이동"
         >
           <span>{title}</span>
-          <span className="text-xs font-normal text-gray-400 group-hover:text-blue-500 print:hidden transition-colors">🔗 입력하기</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500 group-hover:text-blue-500 print:hidden transition-colors">🔗 입력하기</span>
         </Link>
         {subTitle && (
-          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded print:bg-transparent print:p-0 print:text-black font-semibold">
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded print:bg-transparent print:p-0 print:text-black font-semibold">
             {subTitle}
           </span>
         )}
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500 print:border-gray-300">
+          <tr className="bg-gray-50 dark:bg-gray-950 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 print:border-gray-300">
             <th className="px-4 py-2.5 text-left font-semibold print:text-black">항목 (대분류/소분류)</th>
             <th className="px-4 py-2.5 text-right font-semibold print:text-black w-40">금액</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50 print:divide-gray-200">
+        <tbody className="divide-y divide-gray-50 dark:divide-gray-800 print:divide-gray-200">
           {sections.length === 0 ? (
             <tr>
-              <td colSpan={2} className="text-center py-10 text-gray-400">
+              <td colSpan={2} className="text-center py-10 text-gray-400 dark:text-gray-500">
                 실적이 없습니다.
               </td>
             </tr>
@@ -89,23 +89,23 @@ export default function StatusPivot({ title, subTitle, kind, sections, grand, gr
                 <tr 
                   key={`${sec.category}-subtotal`} 
                   onClick={() => toggle(sec.category)}
-                  className="bg-gray-50/40 font-semibold cursor-pointer hover:bg-gray-100/40 print:bg-gray-50"
+                  className="bg-gray-50 dark:bg-gray-950/40 dark:bg-gray-800/40 font-semibold cursor-pointer hover:bg-gray-100/40 dark:hover:bg-gray-800 print:bg-gray-50 dark:bg-gray-950"
                   title="클릭하여 접기/펼치기"
                 >
-                  <td className="px-4 py-2 text-xs text-gray-600 font-bold print:text-black select-none">
-                    <span className="inline-block w-4 text-gray-400 print:hidden">{isCollapsed ? '▶' : '▼'}</span>
+                  <td className="px-4 py-2 text-xs text-gray-600 dark:text-gray-300 font-bold print:text-black select-none">
+                    <span className="inline-block w-4 text-gray-400 dark:text-gray-500 print:hidden">{isCollapsed ? '▶' : '▼'}</span>
                     {sec.category}
                   </td>
-                  <td className="px-4 py-2 text-right text-xs text-gray-700 font-bold print:text-black">{num(sec.subtotal.current)}원</td>
+                  <td className="px-4 py-2 text-right text-xs text-gray-700 dark:text-gray-200 font-bold print:text-black">{num(sec.subtotal.current)}원</td>
                 </tr>,
-                /* 세부 항목 행 (pl-8 간격 들여쓰기, 인쇄 시에도 접어놓은 상태가 아니라면 출력되도록 'print:hidden' 제거) */
+                /* 세부 항목 행 */
                 ...sec.items.map((it) => (
                   <tr 
                     key={it.key} 
-                    className={`hover:bg-gray-50/40 ${isCollapsed ? 'hidden' : ''}`}
+                    className={`hover:bg-gray-50 dark:bg-gray-950/40 dark:hover:bg-gray-800/50 ${isCollapsed ? 'hidden' : ''}`}
                   >
-                    <td className="px-4 py-1.5 pl-8 text-gray-700 text-xs print:text-black select-none">{it.name}</td>
-                    <td className="px-4 py-1.5 text-right text-xs text-gray-600 font-medium print:text-black">{num(it.current)}원</td>
+                    <td className="px-4 py-1.5 pl-8 text-gray-700 dark:text-gray-300 text-xs print:text-black select-none">{it.name}</td>
+                    <td className="px-4 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 dark:text-gray-400 font-medium print:text-black">{num(it.current)}원</td>
                   </tr>
                 ))
               ]

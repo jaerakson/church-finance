@@ -104,7 +104,7 @@ export default async function ExpenseSummaryPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">지출재정집계표</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">지출재정집계표</h1>
           <p className="text-sm text-gray-500 mt-1">일별 지출 내역 · 합계(건축외) {grand.sumExBuild.toLocaleString()}원 · 건축 {grand.build.toLocaleString()}원</p>
         </div>
         <div className="flex items-center gap-2">
@@ -115,10 +115,10 @@ export default async function ExpenseSummaryPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-gray-100 shadow-sm bg-white">
+      <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900">
         <table className="w-full text-sm whitespace-nowrap">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
+            <tr className="bg-gray-50 dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500">
               <th className="px-3 py-2.5 text-center font-semibold">월</th>
               <th className="px-3 py-2.5 text-center font-semibold">일</th>
               {COLS.map((c) => <th key={c.label} className="px-3 py-2.5 text-right font-semibold">{c.label}</th>)}
@@ -138,9 +138,9 @@ export default async function ExpenseSummaryPage({ searchParams }: Props) {
                   ...md.map((d, idx) => (
                     <tr key={`${m}-${d.day}-${idx}`} className="hover:bg-rose-50/50">
                       <td className="px-3 py-2 text-center text-gray-400">{idx === 0 ? `${Number(m)}월` : ''}</td>
-                      <td className="px-3 py-2 text-center text-gray-600">{Number(d.day)}</td>
+                      <td className="px-3 py-2 text-center text-gray-600 dark:text-gray-300">{Number(d.day)}</td>
                       {d.cols.map((n, i) => <td key={i} className="px-3 py-2 text-right text-gray-700">{n ? n.toLocaleString() : '-'}</td>)}
-                      <td className="px-3 py-2 text-right font-medium text-gray-900">{d.sumExBuild.toLocaleString()}</td>
+                      <td className="px-3 py-2 text-right font-medium text-gray-900 dark:text-gray-100">{d.sumExBuild.toLocaleString()}</td>
                       <td className="px-3 py-2 text-right text-gray-700">{d.build ? d.build.toLocaleString() : '-'}</td>
                       <td className="px-3 py-2 text-left text-xs text-gray-400 max-w-xs truncate" title={d.note}>{d.note}</td>
                     </tr>

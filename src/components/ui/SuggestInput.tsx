@@ -40,8 +40,8 @@ export default function SuggestInput({ value, onChange, suggestions, placeholder
   const q = value.trim()
   const filtered = (q ? suggestions.filter((s) => s.value.includes(q)) : suggestions).filter((s) => s.value !== value)
   const ring = accent === 'rose' ? 'focus:ring-rose-500' : 'focus:ring-blue-500'
-  const hover = accent === 'rose' ? 'hover:bg-rose-50' : 'hover:bg-blue-50'
-  const active = accent === 'rose' ? 'bg-rose-100' : 'bg-blue-100'
+  const hover = accent === 'rose' ? 'hover:bg-rose-50 dark:hover:bg-rose-950/10' : 'hover:bg-blue-50 dark:hover:bg-blue-950/10'
+  const active = accent === 'rose' ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-900 dark:text-rose-100' : 'bg-blue-100 dark:bg-blue-950/40 text-blue-900 dark:text-blue-100'
 
   useEffect(() => { setActiveIndex(-1) }, [value, open])
 
@@ -81,20 +81,20 @@ export default function SuggestInput({ value, onChange, suggestions, placeholder
         onChange={(e) => { onChange(e.target.value); setOpen(true) }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        className={`w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${ring} bg-white`}
+        className={`w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 ${ring} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 dark:text-gray-50`}
         autoComplete="off"
       />
       {open && filtered.length > 0 && (
-        <ul className="absolute z-20 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
+        <ul className="absolute z-20 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 dark:border-gray-800 rounded-xl shadow-lg mt-1 max-h-52 overflow-y-auto w-full text-sm">
           {filtered.map((s, idx) => (
             <li
               key={s.value}
               onMouseDown={(e) => { e.preventDefault(); onChange(s.value); setOpen(false); onEnter?.() }}
               onMouseEnter={() => setActiveIndex(idx)}
-              className={`flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer transition-colors text-gray-800 ${idx === activeIndex ? active : hover}`}
+              className={`flex items-center justify-between gap-2 px-3 py-2.5 cursor-pointer transition-colors text-gray-800 dark:text-gray-200 ${idx === activeIndex ? active : hover}`}
             >
               <span className="truncate">{s.value}</span>
-              {s.count != null && <span className="text-[10px] text-gray-400 whitespace-nowrap">최근 {s.count}회</span>}
+              {s.count != null && <span className="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap">최근 {s.count}회</span>}
             </li>
           ))}
         </ul>

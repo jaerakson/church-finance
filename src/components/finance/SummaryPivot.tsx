@@ -40,11 +40,11 @@ export default function SummaryPivot({ title, kind, sections, grand, grandLabel,
     `/finance/summary/${kind}/${encodeURIComponent(key)}?year=${encodeURIComponent(year)}&half=${half}&scope=${scope}`
 
   return (
-    <div className="rounded-xl border border-gray-100 shadow-sm bg-white overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 font-bold text-gray-800">{title}</div>
+    <div className="rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 font-bold text-gray-800 dark:text-gray-100">{title}</div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
+          <tr className="bg-gray-50 dark:bg-gray-950 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
             <th className="px-3 py-2 text-left font-semibold">항목</th>
             <th className="px-3 py-2 text-right font-semibold">예산</th>
             <th className="px-3 py-2 text-right font-semibold">직전누계</th>
@@ -52,7 +52,7 @@ export default function SummaryPivot({ title, kind, sections, grand, grandLabel,
             <th className="px-3 py-2 text-right font-semibold">총합계</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-50">
+        <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
           {sections.map((sec) => {
             const isCollapsed = collapsed.has(sec.category)
             return (
@@ -67,7 +67,7 @@ export default function SummaryPivot({ title, kind, sections, grand, grandLabel,
               />
             )
           })}
-          <tr className={`font-bold ${grandColor} border-t-2 border-gray-200`}>
+          <tr className={`font-bold ${grandColor} border-t-2 border-gray-200 dark:border-gray-700`}>
             <td className="px-3 py-2.5">{grandLabel}</td>
             <td className="px-3 py-2.5 text-right">{num(grand.budget)}</td>
             <td className="px-3 py-2.5 text-right">{num(grand.prev)}</td>
@@ -92,37 +92,37 @@ function PivotGroup({
 }) {
   return (
     <>
-      <tr className="bg-gray-50/70 cursor-pointer hover:bg-gray-100/70" onClick={onToggle}>
-        <td className="px-3 py-1.5 text-xs font-bold text-gray-600">
-          <span className="inline-block w-4 text-gray-400">{isCollapsed ? '▶' : '▼'}</span>
+      <tr className="bg-gray-50 dark:bg-gray-950/70 dark:bg-gray-800/70 cursor-pointer hover:bg-gray-100/70 dark:hover:bg-gray-800" onClick={onToggle}>
+        <td className="px-3 py-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">
+          <span className="inline-block w-4 text-gray-400 dark:text-gray-500">{isCollapsed ? '▶' : '▼'}</span>
           {sec.category}
         </td>
-        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-500">{num(sec.subtotal.budget)}</td>
-        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-500">{num(sec.subtotal.prev)}</td>
-        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-700">{num(sec.subtotal.current)}</td>
-        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-700">{num(sec.subtotal.total)}</td>
-      </tr>
-      {!isCollapsed &&
+        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">{num(sec.subtotal.budget)}</td>
+        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400">{num(sec.subtotal.prev)}</td>
+        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-700 dark:text-gray-100">{num(sec.subtotal.current)}</td>
+        <td className="px-3 py-1.5 text-right text-xs font-semibold text-gray-700 dark:text-gray-100">{num(sec.subtotal.total)}</td>
+        </tr>
+        {!isCollapsed &&
         sec.items.map((it) => (
-          <tr key={it.key} className="hover:bg-blue-50/40">
-            <td className="px-3 py-2 pl-8">
-              <Link href={link(it.key, 'total')} className="text-blue-600 hover:text-blue-800 hover:underline">
-                {it.name}
-              </Link>
-            </td>
-            <td className="px-3 py-1 text-right">
-              <BudgetCell kind={kind} year={year} typeKey={it.key} value={it.budget} />
-            </td>
-            <td className="px-3 py-2 text-right text-gray-500">
-              {it.prev ? <Link href={link(it.key, 'prev')} className="hover:underline">{num(it.prev)}</Link> : '-'}
-            </td>
-            <td className="px-3 py-2 text-right text-gray-800">
-              {it.current ? <Link href={link(it.key, 'current')} className="hover:underline font-medium">{num(it.current)}</Link> : '-'}
-            </td>
-            <td className="px-3 py-2 text-right text-gray-900 font-medium">
-              {it.total ? <Link href={link(it.key, 'total')} className="hover:underline">{num(it.total)}</Link> : '-'}
-            </td>
-          </tr>
+        <tr key={it.key} className="hover:bg-blue-50/40 dark:hover:bg-blue-950/20">
+        <td className="px-3 py-2 pl-8">
+          <Link href={link(it.key, 'total')} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline">
+            {it.name}
+          </Link>
+        </td>
+        <td className="px-3 py-1 text-right">
+          <BudgetCell kind={kind} year={year} typeKey={it.key} value={it.budget} />
+        </td>
+        <td className="px-3 py-2 text-right text-gray-500 dark:text-gray-300">
+          {it.prev ? <Link href={link(it.key, 'prev')} className="hover:underline">{num(it.prev)}</Link> : '-'}
+        </td>
+        <td className="px-3 py-2 text-right text-gray-800 dark:text-gray-100">
+          {it.current ? <Link href={link(it.key, 'current')} className="hover:underline font-medium">{num(it.current)}</Link> : '-'}
+        </td>
+        <td className="px-3 py-2 text-right text-gray-900 dark:text-white font-medium">
+          {it.total ? <Link href={link(it.key, 'total')} className="hover:underline">{num(it.total)}</Link> : '-'}
+        </td>
+        </tr>
         ))}
     </>
   )
@@ -168,7 +168,7 @@ function BudgetCell({ kind, year, typeKey, value }: { kind: 'income' | 'expense'
       }}
       placeholder="예산 입력"
       title="클릭해서 예산을 입력하세요"
-      className={`w-24 text-right text-sm rounded px-2 py-1 border ${error ? 'border-rose-400' : 'border-transparent hover:border-gray-200'} focus:border-blue-400 focus:bg-white focus:outline-none ${saving ? 'opacity-50' : ''} bg-transparent`}
+      className={`w-24 text-right text-sm rounded px-2 py-1 border ${error ? 'border-rose-400' : 'border-transparent hover:border-gray-200 dark:border-gray-700 dark:hover:border-gray-700'} focus:border-blue-400 focus:bg-white dark:bg-gray-900 dark:focus:bg-gray-950 focus:outline-none ${saving ? 'opacity-50' : ''} bg-transparent dark:text-gray-100`}
     />
   )
 }

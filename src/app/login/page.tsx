@@ -42,14 +42,14 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-1">검암중앙교회</p>
-          <h1 className="text-2xl font-bold text-gray-900">재정관리 시스템</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">재정관리 시스템</h1>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
           <form onSubmit={onSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-gray-700">비밀번호</label>
@@ -62,13 +62,13 @@ function LoginForm() {
                   placeholder="비밀번호를 입력하세요"
                   autoComplete="current-password"
                   enterKeyHint="go"
-                  className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full border border-gray-200 dark:border-gray-700 rounded-xl pl-4 pr-12 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                  className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-gray-400 hover:text-gray-600 touch-manipulation"
+                  className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-gray-300 touch-manipulation"
                 >
                   <span className="text-lg">{showPassword ? '🙈' : '👁️'}</span>
                 </button>

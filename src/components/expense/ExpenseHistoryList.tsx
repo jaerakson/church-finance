@@ -120,7 +120,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
 
   if (sortedDates.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center text-gray-400 text-sm">
         데이터가 없습니다.
       </div>
     )
@@ -139,12 +139,12 @@ export default function ExpenseHistoryList({ expenses }: Props) {
         const isOpen = openDate === date
 
         return (
-          <div key={date} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div key={date} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             {/* 날짜 헤더 (클릭) */}
             <button
               type="button"
               onClick={() => setOpenDate(isOpen ? null : date)}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:bg-gray-950 transition-colors"
             >
               <span className="flex items-center gap-2">
                 <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
@@ -156,7 +156,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
 
             {/* 펼침: 세부내역 (수정/삭제) */}
             {isOpen && (
-              <ul className="border-t border-gray-100 divide-y divide-gray-50">
+              <ul className="border-t border-gray-100 dark:border-gray-800 divide-y divide-gray-50">
                 {items.map((e) => (
                   <li key={e.rowIndex} className="px-4 py-2.5 text-sm">
                     {editingRow === e.rowIndex ? (
@@ -174,7 +174,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                                   className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
                                     editDescription === d
                                       ? 'bg-gray-700 text-white border-gray-700'
-                                      : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                                      : 'bg-white dark:bg-gray-900 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400'
                                   }`}
                                 >{d}</button>
                               ))}
@@ -184,7 +184,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                         <input
                           value={editDescription}
                           onChange={(ev) => setEditDescription(ev.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
                           placeholder="내역"
                         />
 
@@ -201,7 +201,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                                   className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${
                                     editAmount === a
                                       ? 'bg-rose-600 text-white border-rose-600'
-                                      : 'bg-white text-gray-600 border-gray-200 hover:border-rose-300'
+                                      : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-rose-300'
                                   }`}
                                 >{Number(a).toLocaleString()}원</button>
                               ))}
@@ -213,13 +213,13 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                           inputMode="numeric"
                           value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
                           onChange={(ev) => setEditAmount(ev.target.value.replace(/[^\d]/g, ''))}
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-rose-500"
                           placeholder="금액"
                         />
                         <input
                           value={editNote}
                           onChange={(ev) => setEditNote(ev.target.value)}
-                          className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
+                          className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500"
                           placeholder="비고"
                         />
                         <div className="flex gap-2">
@@ -233,7 +233,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                             type="button"
                             onClick={cancelEdit}
                             disabled={busy}
-                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg py-1.5 text-xs font-medium transition-colors"
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-lg py-1.5 text-xs font-medium transition-colors"
                           >취소</button>
                         </div>
                       </div>
@@ -251,14 +251,14 @@ export default function ExpenseHistoryList({ expenses }: Props) {
                             type="button"
                             onClick={() => setConfirmingRow(null)}
                             disabled={busy}
-                            className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                            className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium transition-colors"
                           >취소</button>
                         </span>
                       </div>
                     ) : (
                       <div className="flex items-center justify-between gap-2">
                         <span className="min-w-0 truncate">
-                          <span className="text-gray-900">{e.description}</span>
+                          <span className="text-gray-900 dark:text-gray-100">{e.description}</span>
                           <span className="ml-2 text-xs text-gray-400">
                             {lookupName(expenseTypes, e.typeKey)}
                             {e.note ? ` · ${e.note}` : ''}
@@ -293,7 +293,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
         <button
           type="button"
           onClick={() => setVisibleCount((c) => c + INITIAL_COUNT)}
-          className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 bg-white rounded-xl border border-gray-100 shadow-sm transition-colors"
+          className="w-full py-3 text-sm font-medium text-gray-500 hover:text-gray-700 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm transition-colors"
         >
           더보기 ({sortedDates.length - visibleCount}일 더)
         </button>

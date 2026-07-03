@@ -50,12 +50,36 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)          // 모바일 드로어
   const [collapsed, setCollapsed] = useState(false) // 데스크톱 접기
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     try {
       if (localStorage.getItem('sidebarCollapsed') === '1') setCollapsed(true)
     } catch { /* ignore */ }
   }, [])
+
+  useEffect(() => {
+    setMounted(true)
+    try {
+      const saved = localStorage.getItem('theme')
+      const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      setTheme(isDark ? 'dark' : 'light')
+    } catch { /* ignore */ }
+  }, [])
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light'
+    setTheme(nextTheme)
+    try {
+      localStorage.setItem('theme', nextTheme)
+      if (nextTheme === 'dark') {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    } catch { /* ignore */ }
+  }
 
   const toggleCollapsed = (v: boolean) => {
     setCollapsed(v)
@@ -69,16 +93,28 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <LookupProvider>
     <div className="min-h-screen">
       {/* 모바일 상단바 */}
-      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-100 z-30 flex items-center gap-3 px-4 shadow-sm print:hidden">
+      <header className="lg:hidden fixed top-0 inset-x-0 h-14 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 z-30 flex items-center justify-between px-4 shadow-sm print:hidden dark:bg-gray-900 dark:border-gray-800">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="메뉴 열기"
+            className="w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 active:bg-gray-200 touch-manipulation dark:text-gray-300 dark:hover:bg-gray-800 dark:active:bg-gray-700"
+          >
+            <span className="text-xl">☰</span>
+          </button>
+          <span className="font-bold text-gray-900 dark:text-gray-100">재정관리</span>
+        </div>
+        
+        {/* 모바일 테마 토글 버튼 */}
         <button
           type="button"
-          onClick={() => setOpen(true)}
-          aria-label="메뉴 열기"
-          className="w-10 h-10 -ml-2 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 active:bg-gray-200 touch-manipulation"
+          onClick={toggleTheme}
+          aria-label="테마 전환"
+          className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-800 touch-manipulation"
         >
-          <span className="text-xl">☰</span>
+          <span className="text-lg">{mounted && theme === 'dark' ? '☀️' : '🌙'}</span>
         </button>
-        <span className="font-bold text-gray-900">재정관리</span>
       </header>
 
       {/* 오버레이 (모바일 드로어 열렸을 때) */}
@@ -92,7 +128,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => toggleCollapsed(false)}
           aria-label="사이드바 열기"
-          className="hidden lg:flex fixed top-4 left-4 z-30 w-10 h-10 items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm text-gray-600 hover:bg-gray-50 print:hidden"
+          className="hidden lg:flex fixed top-4 left-4 z-30 w-10 h-10 items-center justify-center rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-950 print:hidden dark:bg-gray-900 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-800"
         >
           <span className="text-lg">☰</span>
         </button>
@@ -100,19 +136,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* 사이드바 — 모바일: 오프캔버스, 데스크톱: 고정(접기 가능) */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white border-r border-gray-100 shadow-sm z-50 flex flex-col transition-transform duration-200 print:hidden ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}`}
+        className={`fixed top-0 left-0 h-full w-64 lg:w-56 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 shadow-sm z-50 flex flex-col transition-transform duration-200 print:hidden dark:bg-gray-900 dark:border-gray-800 ${open ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}`}
       >
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between dark:border-gray-800">
           <div>
-            <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest mb-0.5">검암중앙교회</p>
-            <h1 className="text-base font-bold text-gray-900">재정관리</h1>
+            <p className="text-xs font-semibold text-blue-600 uppercase tracking-widest mb-0.5 dark:text-blue-400">검암중앙교회</p>
+            <h1 className="text-base font-bold text-gray-900 dark:text-gray-100">재정관리</h1>
           </div>
           {/* 모바일: 닫기 */}
           <button
             type="button"
             onClick={() => setOpen(false)}
             aria-label="메뉴 닫기"
-            className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 touch-manipulation"
+            className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 touch-manipulation dark:text-gray-500 dark:hover:bg-gray-800"
           >
             ✕
           </button>
@@ -122,7 +158,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             onClick={() => toggleCollapsed(true)}
             aria-label="사이드바 접기"
             title="사이드바 접기"
-            className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="hidden lg:flex w-9 h-9 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-300 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
           >
             <span className="text-lg">«</span>
           </button>
@@ -130,7 +166,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <nav className="flex-1 px-3 py-4 space-y-4 overflow-y-auto">
           {navGroups.map((group) => (
             <div key={group.label}>
-              <p className="px-3 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">{group.label}</p>
+              <p className="px-3 mb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-500">{group.label}</p>
               <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const active = pathname === item.href
@@ -140,7 +176,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors touch-manipulation ${
-                        active ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                        active 
+                          ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' 
+                          : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-700 dark:text-gray-300 dark:hover:bg-blue-950/40 dark:hover:text-blue-400'
                       }`}
                     >
                       <span>{item.icon}</span>
@@ -152,9 +190,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </nav>
-        <div className="px-3 py-4 border-t border-gray-100 space-y-1">
-          <p className="px-3 text-xs text-gray-400">Google Sheets 연동</p>
-          <LogoutButton />
+        
+        {/* 테마 토글 및 로그아웃 하단 버튼 */}
+        <div className="px-3 py-4 border-t border-gray-100 dark:border-gray-800 space-y-1 dark:border-gray-800">
+          <p className="px-3 text-xs text-gray-400 dark:text-gray-500 pb-1">설정</p>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors cursor-pointer touch-manipulation"
+          >
+            <span className="text-base">{mounted && theme === 'dark' ? '☀️' : '🌙'}</span>
+            <span>{mounted && theme === 'dark' ? '라이트모드 전환' : '다크모드 전환'}</span>
+          </button>
+          
+          <div className="pt-2">
+            <p className="px-3 text-xs text-gray-400 dark:text-gray-500">Google Sheets 연동</p>
+            <LogoutButton />
+          </div>
         </div>
       </aside>
 

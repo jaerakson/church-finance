@@ -115,7 +115,7 @@ export default async function SummaryPage({ searchParams }: Props) {
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">재정집계표</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">재정집계표</h1>
           <p className="text-sm text-gray-500 mt-1">
             {activeYear}년 {halfLabel} · 수입 {income.grand.total.toLocaleString()}원 · 지출 {expense.grand.total.toLocaleString()}원 · 차액 {(income.grand.total - expense.grand.total).toLocaleString()}원
           </p>

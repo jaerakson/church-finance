@@ -231,8 +231,8 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* ── 입력 폼 ── */}
-      <div className="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-        <h2 className="text-base font-bold text-gray-900">헌금 입력</h2>
+      <div className="flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 space-y-5">
+        <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">헌금 입력</h2>
 
         {error && <div className="bg-rose-50 text-rose-700 border border-rose-200 rounded-xl px-4 py-3 text-sm">{error}</div>}
         {success && <div className="bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl px-4 py-3 text-sm font-medium">✓ 저장되었습니다.</div>}
@@ -298,7 +298,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                   <p className="text-[11px] text-gray-500 mb-1.5">최근 입력 내역 (비교용)</p>
                   <ul className="space-y-1">
                     {recent.map((r, i) => (
-                      <li key={`${r.date}-${i}`} className="flex items-center justify-between text-[11px] text-gray-600">
+                      <li key={`${r.date}-${i}`} className="flex items-center justify-between text-[11px] text-gray-600 dark:text-gray-300">
                         <span className="text-gray-400">{r.date}</span>
                         <span className="font-medium">{Number(r.amount).toLocaleString()}원</span>
                       </li>
@@ -357,15 +357,15 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
 
       {/* ── 오늘 내역 ── */}
       <div className="w-full lg:w-96 space-y-4">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-900">오늘의 헌금 내역</h2>
+            <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">오늘의 헌금 내역</h2>
             <span className="text-xs text-gray-400">{formatDateKo(date)}</span>
           </div>
 
           {/* 종류별 소계 */}
           {byType.length > 0 && (
-            <div className="mb-4 space-y-1 bg-gray-50/50 p-2 rounded-xl border border-gray-100 print:hidden select-none">
+            <div className="mb-4 space-y-1 bg-gray-50 dark:bg-gray-950/50 p-2 rounded-xl border border-gray-100 dark:border-gray-800 print:hidden select-none">
               {byType.map((t) => {
                 const isSelected = selectedFilterType === t.key
                 return (
@@ -375,7 +375,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                     className={`flex items-center justify-between text-xs py-1 px-1.5 rounded-lg cursor-pointer transition-all ${
                       isSelected 
                         ? 'bg-blue-600 text-white font-semibold shadow-sm' 
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-100'
                     }`}
                     title={isSelected ? '클릭하여 필터 해제' : `${t.name} 항목만 아래 리스트에 보기`}
                   >
@@ -386,7 +386,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                   </div>
                 )
               })}
-              <div className="border-t border-gray-200/80 pt-1.5 mt-1 flex items-center justify-between text-xs font-bold px-1.5">
+              <div className="border-t border-gray-200 dark:border-gray-700/80 pt-1.5 mt-1 flex items-center justify-between text-xs font-bold px-1.5">
                 <span className="text-gray-700">오늘 합계</span>
                 <span className="text-blue-600">{todayTotal.toLocaleString()}원</span>
               </div>
@@ -394,7 +394,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
           )}
 
           {/* 개별 내역 (수정/삭제) */}
-          <div className="flex items-center justify-between mb-2 mt-4 pb-1 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-2 mt-4 pb-1 border-b border-gray-100 dark:border-gray-800">
             <span className="text-xs font-bold text-gray-700">
               세부 내역 {selectedFilterType ? `(${lookupName(offeringTypes, selectedFilterType)})` : '(전체)'}
             </span>
@@ -420,7 +420,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                 <li key={o.rowIndex} className="py-2 border-b border-gray-50 last:border-0">
                   {editingRow === o.rowIndex ? (
                     <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {memberMap[o.memberKey] ?? o.memberKey}
                         <span className="ml-1.5 text-xs text-gray-400">{lookupName(offeringTypes, o.typeKey)}</span>
                       </p>
@@ -429,13 +429,13 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                         inputMode="numeric"
                         value={editAmount === '' ? '' : Number(editAmount).toLocaleString()}
                         onChange={(e) => setEditAmount(e.target.value.replace(/[^\d]/g, ''))}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="금액"
                       />
                       <input
                         value={editNote}
                         onChange={(e) => setEditNote(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="비고"
                       />
                       <div className="flex gap-2">
@@ -449,7 +449,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                         <button
                           type="button"
                           onClick={cancelEdit}
-                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg py-1.5 text-xs font-medium transition-colors"
+                          className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 dark:text-gray-300 rounded-lg py-1.5 text-xs font-medium transition-colors"
                         >
                           취소
                         </button>
@@ -467,18 +467,18 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                         <button
                           type="button"
                           onClick={() => setConfirmingRow(null)}
-                          className="px-2.5 py-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-md text-xs font-medium transition-colors"
+                          className="px-2.5 py-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:bg-gray-950 text-gray-600 dark:text-gray-300 rounded-md text-xs font-medium transition-colors"
                         >취소</button>
                       </span>
                     </div>
                   ) : (
                     <div 
                       onClick={() => startEdit(o)}
-                      className="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50/70 p-1.5 rounded-lg transition-colors group"
+                      className="flex items-center justify-between gap-2 cursor-pointer hover:bg-gray-50 dark:bg-gray-950/70 p-1.5 rounded-lg transition-colors group"
                       title="클릭하여 수정하기"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{memberMap[o.memberKey] ?? o.memberKey}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-blue-600 transition-colors">{memberMap[o.memberKey] ?? o.memberKey}</p>
                         <p className="text-xs text-gray-400 truncate">{lookupName(offeringTypes, o.typeKey)}{o.note ? ` · ${o.note}` : ''}</p>
                       </div>
                       <div className="flex items-center gap-1 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -508,7 +508,7 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   )
 }
 
-const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white'
+const inputCls = 'w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
