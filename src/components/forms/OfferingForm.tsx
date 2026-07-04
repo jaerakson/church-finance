@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { OfferingFormData } from '@/lib/types'
 import { useLookups } from '@/lib/lookups'
 import { Member } from '@/lib/types'
+import { today } from '@/lib/date'
 
 const schema = z.object({
   date: z.string().min(1, '날짜를 입력해주세요.'),
@@ -35,7 +36,7 @@ export default function OfferingForm({ mode, members, defaultValues, rowIndex }:
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
-    defaultValues: (defaultValues ?? { date: new Date().toISOString().slice(0, 10) }) as FormValues,
+    defaultValues: (defaultValues ?? { date: today() }) as FormValues,
   })
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {

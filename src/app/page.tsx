@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { getMembers, getOfferings, getExpenses } from '@/lib/google-sheets'
 import { Offering, Expense } from '@/lib/types'
-import { currentYear, todayKST, sundaysUpTo } from '@/lib/date'
+import { currentYear, today, sundaysUpTo } from '@/lib/date'
 import YearFilter from '@/components/ui/YearFilter'
 import MissingSundayCheck, { SundayStatus } from '@/components/dashboard/MissingSundayCheck'
 
@@ -65,7 +65,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const checkYear = selectedYear === 'all' ? defYear : selectedYear
   const offeringDates = new Set(allOfferings.map((o) => o.date))
   const expenseDates  = new Set(allExpenses.map((e) => e.date))
-  const sundayStatuses: SundayStatus[] = sundaysUpTo(checkYear, todayKST()).map((date) => ({
+  const sundayStatuses: SundayStatus[] = sundaysUpTo(checkYear, today()).map((date) => ({
     date,
     hasOffering: offeringDates.has(date),
     hasExpense: expenseDates.has(date),

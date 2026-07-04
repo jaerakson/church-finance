@@ -1,13 +1,9 @@
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
 
-export function today(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
 // 한국 시간(KST, UTC+9) 기준 오늘 날짜(YYYY-MM-DD).
-// today()는 UTC 기준이라 한국의 이른 시간대에 하루가 뒤처질 수 있어,
-// '오늘 주일 포함' 같이 한국 날짜가 정확해야 하는 곳에서 사용한다.
-export function todayKST(): string {
+// 배포 서버·브라우저의 타임존과 무관하게 항상 한국 날짜를 반환한다.
+// (교회는 한국에 있으므로 입력 기본 날짜·주일 체크 등 모든 '오늘'은 KST 기준)
+export function today(): string {
   return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 

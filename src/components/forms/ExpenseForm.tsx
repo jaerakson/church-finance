@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { ExpenseFormData } from '@/lib/types'
 import { useLookups } from '@/lib/lookups'
+import { today } from '@/lib/date'
 
 const schema = z.object({
   date: z.string().min(1, '날짜를 입력해주세요.'),
@@ -33,7 +34,7 @@ export default function ExpenseForm({ mode, defaultValues, rowIndex }: Props) {
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(schema) as any,
-    defaultValues: (defaultValues ?? { date: new Date().toISOString().slice(0, 10) }) as FormValues,
+    defaultValues: (defaultValues ?? { date: today() }) as FormValues,
   })
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
