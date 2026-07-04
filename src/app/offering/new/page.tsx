@@ -2,6 +2,11 @@ import { Suspense } from 'react'
 import { getMembers } from '@/lib/google-sheets'
 import OfferingInputClient from './OfferingInputClient'
 
+// 교인 명단은 매 요청마다 시트에서 새로 읽어야 한다.
+// (지정하지 않으면 빌드 시점에 정적 생성되어, 빌드 환경에서 시트 접근이 실패하면
+//  members가 빈 배열로 고정되고 신규 교인도 반영되지 않는다)
+export const dynamic = 'force-dynamic'
+
 export default async function NewOfferingPage() {
   const members = await getMembers().catch(() => [])
   return (

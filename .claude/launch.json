@@ -3,15 +3,25 @@
   "configurations": [
     {
       "name": "church-finance-web (Next.js dev)",
-      "runtimeExecutable": "node",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
       "runtimeArgs": [
-        "/Users/liche/Documents/dev/church_finance/app/node_modules/next/dist/bin/next",
+        "node_modules/next/dist/bin/next",
         "dev",
-        "/Users/liche/Documents/dev/church_finance/app",
         "--port",
         "3001"
       ],
       "port": 3001
+    },
+    {
+      "name": "church-finance-web (Next.js prod start)",
+      "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe",
+      "runtimeArgs": [
+        "node_modules/next/dist/bin/next",
+        "start",
+        "--port",
+        "3002"
+      ],
+      "port": 3002
     }
   ]
 }
