@@ -4,6 +4,13 @@ export function today(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+// 한국 시간(KST, UTC+9) 기준 오늘 날짜(YYYY-MM-DD).
+// today()는 UTC 기준이라 한국의 이른 시간대에 하루가 뒤처질 수 있어,
+// '오늘 주일 포함' 같이 한국 날짜가 정확해야 하는 곳에서 사용한다.
+export function todayKST(): string {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
+
 export function currentYear(): string {
   return String(new Date().getFullYear())
 }
