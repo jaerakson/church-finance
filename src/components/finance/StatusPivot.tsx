@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-export type StatusItem = { key: string; name: string; budget: number; prev: number; current: number; total: number }
+export type StatusDetail = { label: string; amount: number }
+export type StatusItem = { key: string; name: string; budget: number; prev: number; current: number; total: number; details?: StatusDetail[] }
 export type StatusSection = {
   category: string
   items: StatusItem[]
@@ -98,16 +99,24 @@ export default function StatusPivot({ title, subTitle, kind, sections, grand, gr
                   </td>
                   <td className="px-4 py-2 text-right text-xs text-gray-700 dark:text-gray-200 font-bold print:text-black">{num(sec.subtotal.current)}원</td>
                 </tr>,
-                /* 세부 항목 행 */
-                ...sec.items.map((it) => (
-                  <tr 
-                    key={it.key} 
-                    className={`hover:bg-gray-50 dark:bg-gray-950/40 dark:hover:bg-gray-800/50 ${isCollapsed ? 'hidden' : ''}`}
-                  >
-                    <td className="px-4 py-1.5 pl-8 text-gray-700 dark:text-gray-300 text-xs print:text-black select-none">{it.name}</td>
-                    <td className="px-4 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 dark:text-gray-400 font-medium print:text-black">{num(it.current)}원</td>
-                  </tr>
-                ))
+                /* 세부 항목 행 — 소분류(메모)는 항목명 옆에 괄호로 인라인 표기하여 인쇄 시 줄 수를 절약한다. */
+                ...sec.items.map((it) => {
+                  const memo = (it.details ?? []).map((d) => d.label).join(', ')
+                  return (
+                    <tr
+                      key={it.key}
+                      className={`hover:bg-gray-50 dark:bg-gray-950/40 dark:hover:bg-gray-800/50 ${isCollapsed ? 'hidden' : ''}`}
+                    >
+                      <td className="px-4 py-1.5 pl-8 text-gray-700 dark:text-gray-300 text-xs print:text-black select-none">
+                        {it.name}
+                        {memo && (
+                          <span className="ml-1 text-gray-400 dark:text-gray-500 print:text-gray-600 font-normal">({memo})</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 dark:text-gray-400 font-medium print:text-black">{num(it.current)}원</td>
+                    </tr>
+                  )
+                })
               ]
             })
           )}

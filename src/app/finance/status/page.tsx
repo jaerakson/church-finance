@@ -34,7 +34,9 @@ function parseDateToNum(dStr?: string | unknown): number {
 
 type Totals = { budget: number; prev: number; current: number; total: number }
 
-type StatusItem = { key: string; name: string; budget: number; prev: number; current: number; total: number }
+// 항목별 당일 메모(소분류) 상세 — 메모 문구별 금액 합계
+type StatusDetail = { label: string; amount: number }
+type StatusItem = { key: string; name: string; budget: number; prev: number; current: number; total: number; details: StatusDetail[] }
 type StatusSection = {
   category: string
   items: StatusItem[]
@@ -50,6 +52,7 @@ function buildSections(
   prevMap: Record<string, number>,
   budgetMap: Record<string, number>,
   categories: LookupItem[],
+  detailsMap: Record<string, StatusDetail[]>,
 ): { sections: StatusSection[]; grand: Totals } {
   const sections: StatusSection[] = []
   const covered = new Set<string>()
@@ -57,7 +60,7 @@ function buildSections(
   const makeItem = (key: string, name: string) => {
     const current = currentMap[key] ?? 0
     const prev = prevMap[key] ?? 0
-    return { key, name, budget: budgetMap[key] ?? 0, prev, current, total: prev + current }
+    return { key, name, budget: budgetMap[key] ?? 0, prev, current, total: prev + current, details: detailsMap[key] ?? [] }
   }
   const sum = (items: StatusItem[]): Totals => ({
     budget: items.reduce((s, i) => s + i.budget, 0),
@@ -150,12 +153,41 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
     return m
   }
 
+  // 당일 실적 항목별 메모(소분류) 상세를 수집한다.
+  // 같은 메모 문구는 금액을 합산하고, 메모가 없는 항목은 제외한다.
+  const detailsBy = (
+    rows: { typeKey: string; amount: string; date: string }[],
+    label: (r: { typeKey: string; amount: string; date: string }) => string,
+  ): Record<string, StatusDetail[]> => {
+    const grouped: Record<string, Map<string, number>> = {}
+    for (const r of rows) {
+      if (!inCurrentDate(r.date)) continue
+      const text = label(r).trim()
+      if (!text) continue
+      const map = (grouped[r.typeKey] ??= new Map())
+      map.set(text, (map.get(text) ?? 0) + parseAmount(r.amount))
+    }
+    const out: Record<string, StatusDetail[]> = {}
+    for (const [key, map] of Object.entries(grouped)) {
+      out[key] = [...map.entries()].map(([label, amount]) => ({ label, amount }))
+    }
+    return out
+  }
+
+  // 헌금은 메모(비고), 지출은 내역 + 비고를 소분류 상세로 사용한다.
+  const incomeDetails = detailsBy(allOfferings, (r) => (r as { note?: string }).note ?? '')
+  const expenseDetails = detailsBy(allExpenses, (r) => {
+    const e = r as { description?: string; note?: string }
+    return [e.description, e.note].filter(Boolean).join(' · ')
+  })
+
   const income = buildSections(
     offeringTypes,
     sumBy(allOfferings, inCurrentDate),
     sumBy(allOfferings, inPrevDatesAccum),
     budgets.income,
-    categories
+    categories,
+    incomeDetails
   )
 
   const expense = buildSections(
@@ -163,7 +195,8 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
     sumBy(allExpenses, inCurrentDate),
     sumBy(allExpenses, inPrevDatesAccum),
     budgets.expense,
-    categories
+    categories,
+    expenseDetails
   )
 
   // 당일 수입 중 건축헌금(typeKey: '5') 및 순수입(금액 = 총수입 - 건축헌금) 계산
@@ -175,16 +208,17 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
   const incomeSubTitle = `수입 ${income.grand.current.toLocaleString()} - 건축 ${buildOfferingAmt.toLocaleString()} = ${netIncomeAmt.toLocaleString()}원`
 
   // CSV 헤더 및 데이터 생성 (연간예산 및 총합계 컬럼 제거, 당일실적 -> 금액 변경)
-  const csvHeaders = ['구분', '관', '항목', '직전누계(당일직전까지)', '금액(당일실적)']
+  const csvHeaders = ['구분', '관', '항목', '소분류(메모)', '직전누계(당일직전까지)', '금액(당일실적)']
   const csvRows: (string | number)[][] = []
   const pushSections = (label: string, secs: StatusSection[], grand: Totals) => {
     for (const sec of secs) {
       for (const it of sec.items) {
-        csvRows.push([label, sec.category, it.name, it.prev, it.current])
+        const memo = it.details.map((d) => d.label).join(', ')
+        csvRows.push([label, sec.category, it.name, memo, it.prev, it.current])
       }
-      csvRows.push([label, sec.category, '소계', sec.subtotal.prev, sec.subtotal.current])
+      csvRows.push([label, sec.category, '소계', '', sec.subtotal.prev, sec.subtotal.current])
     }
-    csvRows.push([label, '', `${label} 총계`, grand.prev, grand.current])
+    csvRows.push([label, '', `${label} 총계`, '', grand.prev, grand.current])
   }
   pushSections('수입(헌금)', income.sections, income.grand)
   pushSections('지출', expense.sections, expense.grand)
