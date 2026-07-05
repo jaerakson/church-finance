@@ -174,8 +174,7 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
     return out
   }
 
-  // 헌금은 메모(비고), 지출은 내역 + 비고를 소분류 상세로 사용한다.
-  const incomeDetails = detailsBy(allOfferings, (r) => (r as { note?: string }).note ?? '')
+  // 소분류(메모) 상세는 지출에만 표시한다. (내역 + 비고)
   const expenseDetails = detailsBy(allExpenses, (r) => {
     const e = r as { description?: string; note?: string }
     return [e.description, e.note].filter(Boolean).join(' · ')
@@ -187,7 +186,7 @@ export default async function FinancialStatusPage({ searchParams }: Props) {
     sumBy(allOfferings, inPrevDatesAccum),
     budgets.income,
     categories,
-    incomeDetails
+    {}
   )
 
   const expense = buildSections(
