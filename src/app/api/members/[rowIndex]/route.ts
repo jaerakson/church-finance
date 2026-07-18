@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getMember, updateMember, deleteMember } from '@/lib/google-sheets'
+import { getMember, updateMember, deleteMember, setMemberHidden, memberHasOfferings } from '@/lib/google-sheets'
 import { Member } from '@/lib/types'
 
 type Params = { params: Promise<{ rowIndex: string }> }
@@ -31,10 +31,31 @@ export async function PUT(request: Request, { params }: Params) {
 export async function DELETE(_req: Request, { params }: Params) {
   const { rowIndex } = await params
   try {
+    const member = await getMember(Number(rowIndex))
+    if (!member) return NextResponse.json({ success: false, error: '교인을 찾을 수 없습니다.' }, { status: 404 })
+    const hasOfferings = await memberHasOfferings(member.key)
+    if (hasOfferings) {
+      return NextResponse.json(
+        { success: false, error: '헌금 기록이 있는 교인은 삭제할 수 없습니다. 대신 "숨기기"를 사용해주세요.' },
+        { status: 409 },
+      )
+    }
     await deleteMember(Number(rowIndex))
     return NextResponse.json({ success: true, data: null })
   } catch (e) {
     console.error('[DELETE /api/members/:rowIndex]', e)
     return NextResponse.json({ success: false, error: '삭제에 실패했습니다.' }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: Request, { params }: Params) {
+  const { rowIndex } = await params
+  try {
+    const body: { hidden: boolean } = await request.json()
+    await setMemberHidden(Number(rowIndex), body.hidden)
+    return NextResponse.json({ success: true, data: null })
+  } catch (e) {
+    console.error('[PATCH /api/members/:rowIndex]', e)
+    return NextResponse.json({ success: false, error: '변경에 실패했습니다.' }, { status: 500 })
   }
 }

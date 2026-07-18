@@ -76,20 +76,20 @@ async function clearRow(sheet: string, rowIndex: number, colEnd: string): Promis
 }
 
 // ─── 교인명부 ────────────────────────────────────────────────
-// 컬럼: A=교인키, B=이름, C=소속, D=직분, E=전화번호, F=이메일, G=주소, H=사진, I=서명, J=등록일, K=세례일
+// 컬럼: A=교인키, B=이름, C=소속, D=직분, E=전화번호, F=이메일, G=주소, H=사진, I=서명, J=등록일, K=세례일, L=숨김('Y'/공백)
 
 function rowToMember(row: string[], rowIndex: number): Member {
   const g = (i: number) => row[i] ?? ''
-  return { rowIndex, key: g(0), name: g(1), departmentKey: g(2), positionKey: g(3), phone: g(4), email: g(5), address: g(6), registeredAt: g(9), baptizedAt: g(10) }
+  return { rowIndex, key: g(0), name: g(1), departmentKey: g(2), positionKey: g(3), phone: g(4), email: g(5), address: g(6), registeredAt: g(9), baptizedAt: g(10), hidden: g(11) === 'Y' }
 }
 
 export async function getMembers(): Promise<Member[]> {
-  const rows = await getRange(SHEETS.MEMBER, 'A2:K')
+  const rows = await getRange(SHEETS.MEMBER, 'A2:L')
   return rows.map((r, i) => rowToMember(r, i + 2)).filter((m) => m.name)
 }
 
 export async function getMember(rowIndex: number): Promise<Member | null> {
-  const rows = await getRange(SHEETS.MEMBER, `A${rowIndex}:K${rowIndex}`)
+  const rows = await getRange(SHEETS.MEMBER, `A${rowIndex}:L${rowIndex}`)
   if (!rows[0]) return null
   return rowToMember(rows[0], rowIndex)
 }
@@ -98,8 +98,8 @@ export async function addMember(data: MemberFormData): Promise<Member> {
   const rows = await getRange(SHEETS.MEMBER, 'A2:A')
   const maxKey = rows.reduce((max, r) => Math.max(max, Number(r[0]) || 0), 0)
   const newKey = String(maxKey + 1)
-  const row = [newKey, data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt]
-  await appendRow(SHEETS.MEMBER, row, 'K')
+  const row = [newKey, data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt, '']
+  await appendRow(SHEETS.MEMBER, row, 'L')
   // rowIndex는 추정치 (선택은 key 기준이라 이 흐름에서는 사용되지 않음)
   return {
     rowIndex: rows.length + 2,
@@ -112,17 +112,34 @@ export async function addMember(data: MemberFormData): Promise<Member> {
     address: data.address,
     registeredAt: data.registeredAt,
     baptizedAt: data.baptizedAt,
+    hidden: false,
   }
 }
 
 export async function updateMember(rowIndex: number, data: MemberFormData): Promise<void> {
   const existing = await getMember(rowIndex)
-  const row = [existing?.key ?? '', data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt]
-  await updateRow(SHEETS.MEMBER, rowIndex, row, 'K')
+  const row = [existing?.key ?? '', data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt, existing?.hidden ? 'Y' : '']
+  await updateRow(SHEETS.MEMBER, rowIndex, row, 'L')
 }
 
 export async function deleteMember(rowIndex: number): Promise<void> {
-  await clearRow(SHEETS.MEMBER, rowIndex, 'K')
+  await clearRow(SHEETS.MEMBER, rowIndex, 'L')
+}
+
+export async function setMemberHidden(rowIndex: number, hidden: boolean): Promise<void> {
+  const sheets = getSheets()
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: SPREADSHEET_ID,
+    range: `${SHEETS.MEMBER}!L${rowIndex}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[hidden ? 'Y' : '']] },
+  })
+}
+
+// 삭제 전 참조 무결성 검사 — 헌금 기록이 있는 교인은 삭제 대신 숨기기를 사용해야 한다
+export async function memberHasOfferings(memberKey: string): Promise<boolean> {
+  const offerings = await getOfferings()
+  return offerings.some((o) => o.memberKey === memberKey)
 }
 
 // ─── 헌금 ────────────────────────────────────────────────────

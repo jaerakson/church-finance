@@ -29,7 +29,8 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
   const urlDate = searchParams.get('date')
 
   const [members, setMembers] = useState<Member[]>(initialMembers)
-  const memberOptions: ComboOption[] = members.map((m) => ({ value: m.key, label: m.name }))
+  const visibleMembers = members.filter((m) => !m.hidden)
+  const memberOptions: ComboOption[] = visibleMembers.map((m) => ({ value: m.key, label: m.name }))
   const typeOptions: ComboOption[] = offeringTypes.map((t) => ({ value: t.key, label: t.name }))
   const memberMap = Object.fromEntries(members.map((m) => [m.key, m.name]))
 
@@ -106,7 +107,12 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
 
   const memberName = members.find((m) => m.key === memberKey)?.name ?? ''
   const personalized = Boolean(typeKey && memberKey)
-  const showMemberMissing = Boolean(memberQuery.trim() && !memberKey && !members.some((m) => m.name === memberQuery.trim()))
+  const trimmedMemberQuery = memberQuery.trim()
+  // 숨김 처리된 교인은 기본 목록엔 없지만, 이름이 정확히 일치하면 검색으로 찾아 안내한다
+  const hiddenMatch = members.find((m) => m.hidden && m.name === trimmedMemberQuery)
+  const showMemberMissing = Boolean(
+    trimmedMemberQuery && !memberKey && !hiddenMatch && !visibleMembers.some((m) => m.name === trimmedMemberQuery)
+  )
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -169,6 +175,25 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
     } finally {
       setCreatingMember(false)
     }
+  }
+
+  // 숨김 교인을 이번 입력에서 사용: persist=true면 시트의 숨김도 해제, false면 이번 화면에서만 임시로 보이게 한다
+  // (persist=false는 다음 새로고침 때 다시 숨김 목록에서 제외되는 구조를 유지)
+  const selectHiddenMember = (m: Member, persist: boolean) => {
+    if (persist) {
+      fetch(`/api/members/${m.rowIndex}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hidden: false }),
+      })
+        .then((r) => r.json())
+        .then((json) => { if (!json.success) setError(json.error) })
+        .catch(() => setError('숨김 해제에 실패했습니다.'))
+    }
+    setMembers((prev) => prev.map((x) => (x.key === m.key ? { ...x, hidden: false } : x)))
+    setMemberKey(m.key)
+    setMemberQuery(m.name)
+    focusAmount()
   }
 
   const startEdit = (o: Offering) => {
@@ -263,7 +288,9 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
               value={memberKey}
               onChange={setMemberKey}
               onQueryChange={setMemberQuery}
-              onCreateNew={handleCreateMember}
+              // 검색어가 숨긴 교인 이름과 정확히 일치하면 동명이인 중복 등록을 막기 위해
+              // Combobox 자체의 "+ 새로 등록" 항목을 비활성화하고, 아래 hiddenMatch 안내로 유도한다
+              onCreateNew={hiddenMatch ? undefined : handleCreateMember}
               createLabel={(q) => `+ "${q}" 새 교인으로 바로 등록`}
               inputRef={memberInputRef}
               onSelected={focusAmount}
@@ -282,6 +309,29 @@ export default function OfferingInputClient({ members: initialMembers }: Props) 
                 >
                   {creatingMember ? '등록 중...' : '바로 등록'}
                 </button>
+              </div>
+            )}
+            {hiddenMatch && !memberKey && (
+              <div className="mt-2 space-y-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <span className="block text-xs text-amber-700">
+                  &lsquo;{hiddenMatch.name}&rsquo; 교인은 숨김 처리되어 있습니다.
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => selectHiddenMember(hiddenMatch, true)}
+                    className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-medium whitespace-nowrap transition-colors"
+                  >
+                    숨김 해제하고 선택
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectHiddenMember(hiddenMatch, false)}
+                    className="px-2.5 py-1 bg-white border border-amber-300 hover:bg-amber-100 text-amber-700 rounded-md text-xs font-medium whitespace-nowrap transition-colors"
+                  >
+                    이번만 입력 (숨김 유지)
+                  </button>
+                </div>
               </div>
             )}
           </Field>

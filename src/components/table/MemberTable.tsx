@@ -26,11 +26,20 @@ export default function MemberTable({ data }: { data: Member[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [globalFilter, setGlobalFilter] = useState('')
+  const [showHidden, setShowHidden] = useState(false)
+
+  const hiddenCount = useMemo(() => data.filter((m) => m.hidden).length, [data])
+  const tableData = useMemo(() => (showHidden ? data : data.filter((m) => !m.hidden)), [data, showHidden])
 
   const columns = useMemo(() => [
     helper.accessor('name', {
       header: '이름',
-      cell: (info) => <span className="font-medium text-gray-900 dark:text-gray-100">{info.getValue()}</span>,
+      cell: (info) => (
+        <span className="flex items-center gap-1.5">
+          <span className="font-medium text-gray-900 dark:text-gray-100">{info.getValue()}</span>
+          {info.row.original.hidden && <Badge label="숨김" color="yellow" />}
+        </span>
+      ),
     }),
     helper.accessor('positionKey', {
       header: '직분',
@@ -54,7 +63,7 @@ export default function MemberTable({ data }: { data: Member[] }) {
   ], [positions, departments])
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns,
     state: { sorting, columnFilters, globalFilter },
     onSortingChange: setSorting,
@@ -97,6 +106,17 @@ export default function MemberTable({ data }: { data: Member[] }) {
             )
           }
         />
+        {hiddenCount > 0 && (
+          <label className="flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showHidden}
+              onChange={(e) => setShowHidden(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            숨긴 교인 포함 ({hiddenCount}명)
+          </label>
+        )}
         <span className="ml-auto text-sm text-gray-400">
           총 {table.getFilteredRowModel().rows.length}명
         </span>

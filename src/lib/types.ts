@@ -9,6 +9,7 @@ export interface Member {
   address: string
   registeredAt: string
   baptizedAt: string
+  hidden: boolean       // 숨김 여부 — 헌금 입력 목록 등에서 제외 (헌금 현황은 그대로 표시)
 }
 
 export interface MemberFormData {

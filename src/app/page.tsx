@@ -71,8 +71,10 @@ export default async function DashboardPage({ searchParams }: Props) {
     hasExpense: expenseDates.has(date),
   }))
 
+  const activeMemberCount = members.filter((m) => !m.hidden).length
+
   const stats = [
-    { label: '총 교인 수',    value: `${members.length}명`,                               color: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300',       icon: '👥' },
+    { label: '총 교인 수',    value: `${activeMemberCount}명`,                            color: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300',       icon: '👥' },
     { label: selectedYear === 'all' ? '누적 헌금' : `${selectedYear}년 헌금`, value: `${totalOffering.toLocaleString()}원`, color: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300', icon: '💰' },
     { label: selectedYear === 'all' ? '누적 지출' : `${selectedYear}년 지출`, value: `${totalExpense.toLocaleString()}원`, color: 'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300', icon: '📤' },
     { label: '잔액',          value: `${(totalOffering - totalExpense).toLocaleString()}원`, color: 'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300',     icon: '📊' },

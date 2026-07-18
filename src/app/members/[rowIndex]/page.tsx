@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { getMember, getLookupRows } from '@/lib/google-sheets'
+import { getMember, getLookupRows, memberHasOfferings } from '@/lib/google-sheets'
 import MemberForm from '@/components/forms/MemberForm'
+import MemberActions from '@/components/forms/MemberActions'
 import Badge from '@/components/ui/Badge'
 import { POSITIONS, DEPARTMENTS, lookupName } from '@/lib/constants'
 
@@ -17,6 +18,8 @@ export default async function MemberDetailPage({ params }: Props) {
 
   if (!member) notFound()
 
+  const hasOfferings = await memberHasOfferings(member.key).catch(() => true)
+
   return (
     <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-4">
@@ -28,11 +31,12 @@ export default async function MemberDetailPage({ params }: Props) {
           <div className="flex gap-2 mt-1">
             <Badge label={lookupName(positions, member.positionKey) || '-'} color="blue" />
             <Badge label={lookupName(departments, member.departmentKey) || '-'} color="green" />
+            {member.hidden && <Badge label="숨김" color="yellow" />}
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 space-y-6">
         <MemberForm
           mode="edit"
           rowIndex={Number(rowIndex)}
@@ -46,6 +50,12 @@ export default async function MemberDetailPage({ params }: Props) {
             registeredAt:  member.registeredAt,
             baptizedAt:    member.baptizedAt,
           }}
+        />
+        <MemberActions
+          rowIndex={Number(rowIndex)}
+          name={member.name}
+          hidden={member.hidden}
+          hasOfferings={hasOfferings}
         />
       </div>
     </div>
