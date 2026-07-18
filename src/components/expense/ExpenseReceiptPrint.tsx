@@ -5,7 +5,8 @@ import { lookupName, CATEGORIES } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
 import { numberToKorean } from '@/lib/korean-number'
 
-const ROW_COUNT = 17
+// A4 한 페이지(내용 영역 267mm)에 맞춘 기본 칸수. 입력이 더 많으면 자동으로 늘어남.
+const DEFAULT_ROW_COUNT = 13
 
 function parseAmount(v: string) {
   return Number(v.replace(/,/g, '')) || 0
@@ -31,7 +32,7 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
       return { description: label, amount: parseAmount(e.amount) }
     })
     const padded = [...rows]
-    while (padded.length < ROW_COUNT) padded.push({ description: '', amount: 0 })
+    while (padded.length < DEFAULT_ROW_COUNT) padded.push({ description: '', amount: 0 })
     return padded
   })()
 
