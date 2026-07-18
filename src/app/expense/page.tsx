@@ -38,7 +38,7 @@ export default async function ExpensePage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">지출 내역</h1>
           <p className="text-sm text-gray-500 mt-1">총 {expenses.length}건 · {grandTotal.toLocaleString()}원</p>
@@ -56,7 +56,7 @@ export default async function ExpensePage({ searchParams }: Props) {
 
       {/* 종류별 요약 */}
       {totalByType.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 print:hidden">
           {totalByType.map((t) => (
             <div key={t.key} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-4">
               <p className="text-xs text-gray-400 mb-1">{t.name}</p>
@@ -68,7 +68,7 @@ export default async function ExpensePage({ searchParams }: Props) {
 
       {/* 날짜별 지출 내역 (최근 5건 고정 · 펼침) */}
       <div>
-        <h2 className="text-base font-semibold text-gray-800 mb-3">지출 내역</h2>
+        <h2 className="text-base font-semibold text-gray-800 mb-3 print:hidden">지출 내역</h2>
         <ExpenseHistoryList expenses={expenses} />
       </div>
     </div>

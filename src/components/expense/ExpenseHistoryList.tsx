@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Expense } from '@/lib/types'
 import { lookupName } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
 import { dayOfWeekKo } from '@/lib/date'
+import ExpenseReceiptPrint from './ExpenseReceiptPrint'
 
 interface Props {
   expenses: Expense[]
@@ -30,6 +32,18 @@ export default function ExpenseHistoryList({ expenses }: Props) {
 
   const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT)
   const [openDate, setOpenDate] = useState<string | null>(null)
+  const [printDate, setPrintDate] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!printDate) return
+    const id = setTimeout(() => window.print(), 50)
+    const handleAfterPrint = () => setPrintDate(null)
+    window.addEventListener('afterprint', handleAfterPrint)
+    return () => {
+      clearTimeout(id)
+      window.removeEventListener('afterprint', handleAfterPrint)
+    }
+  }, [printDate])
 
   // 수정/삭제 상태
   const [editingRow, setEditingRow] = useState<number | null>(null)
@@ -120,7 +134,7 @@ export default function ExpenseHistoryList({ expenses }: Props) {
 
   if (sortedDates.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center text-gray-400 text-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center text-gray-400 text-sm print:hidden">
         데이터가 없습니다.
       </div>
     )
@@ -129,7 +143,10 @@ export default function ExpenseHistoryList({ expenses }: Props) {
   const visibleDates = sortedDates.slice(0, visibleCount)
 
   return (
-    <div className="space-y-3">
+    <>
+    {printDate && <ExpenseReceiptPrint date={printDate} items={byDate[printDate] ?? []} />}
+
+    <div className="space-y-3 print:hidden">
       {error && (
         <div className="bg-rose-50 text-rose-700 border border-rose-200 rounded-xl px-4 py-3 text-sm">{error}</div>
       )}
@@ -140,19 +157,36 @@ export default function ExpenseHistoryList({ expenses }: Props) {
 
         return (
           <div key={date} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-            {/* 날짜 헤더 (클릭) */}
-            <button
-              type="button"
-              onClick={() => setOpenDate(isOpen ? null : date)}
-              className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:bg-gray-950 transition-colors"
-            >
-              <span className="flex items-center gap-2">
+            {/* 날짜 헤더 */}
+            <div className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 dark:bg-gray-950 transition-colors">
+              <button
+                type="button"
+                onClick={() => setOpenDate(isOpen ? null : date)}
+                className="flex items-center gap-2 flex-1 min-w-0 text-left"
+              >
                 <span className={`text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`}>▶</span>
                 <span className="text-sm font-semibold text-gray-800">{date} ({dayOfWeekKo(date)})</span>
                 <span className="text-xs text-gray-400">{items.length}건</span>
+              </button>
+              <span className="flex items-center gap-1 whitespace-nowrap">
+                <span className="text-sm font-bold text-rose-600 mr-1">{dateTotal.toLocaleString()}원</span>
+                <button
+                  type="button"
+                  onClick={() => setPrintDate(date)}
+                  className="p-1.5 text-gray-400 hover:text-rose-600 transition-colors print:hidden"
+                  title="지출결의서 인쇄"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+                <Link
+                  href={`/expense/new?date=${date}`}
+                  className="p-1.5 text-gray-400 hover:text-blue-500 transition-colors print:hidden"
+                  title="이 날짜로 지출 입력"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </Link>
               </span>
-              <span className="text-sm font-bold text-rose-600">{dateTotal.toLocaleString()}원</span>
-            </button>
+            </div>
 
             {/* 펼침: 세부내역 (수정/삭제) */}
             {isOpen && (
@@ -299,5 +333,6 @@ export default function ExpenseHistoryList({ expenses }: Props) {
         </button>
       )}
     </div>
+    </>
   )
 }

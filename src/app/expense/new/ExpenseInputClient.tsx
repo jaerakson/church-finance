@@ -9,6 +9,7 @@ import { today, formatDateKo } from '@/lib/date'
 import Combobox, { ComboOption } from '@/components/ui/Combobox'
 import SuggestInput, { Suggestion } from '@/components/ui/SuggestInput'
 import AmountInput from '@/components/ui/AmountInput'
+import ExpenseReceiptPrint from '@/components/expense/ExpenseReceiptPrint'
 
 function parseAmount(v: string) {
   return Number(v.replace(/,/g, '')) || 0
@@ -176,7 +177,10 @@ export default function ExpenseInputClient() {
   const todayTotal = todayList.reduce((s, e) => s + parseAmount(e.amount), 0)
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <>
+    <ExpenseReceiptPrint date={date} items={todayList} />
+
+    <div className="flex flex-col lg:flex-row gap-6 print:hidden">
       {/* ── 입력 폼 ── */}
       <div className="flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6 space-y-5">
         <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">지출 입력</h2>
@@ -256,7 +260,19 @@ export default function ExpenseInputClient() {
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">금일의 지출</h2>
-            <span className="text-xs text-gray-400">{formatDateKo(date)}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">{formatDateKo(date)}</span>
+              {todayList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="p-1.5 text-gray-400 hover:text-rose-600 transition-colors print:hidden"
+                  title="지출결의서 인쇄"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex items-center justify-between text-sm font-bold mb-4 pb-3 border-b border-gray-100 dark:border-gray-800">
             <span className="text-gray-600 dark:text-gray-300">합계</span>
@@ -350,6 +366,7 @@ export default function ExpenseInputClient() {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
