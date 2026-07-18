@@ -49,14 +49,14 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
         fontFamily: 'serif',
         flexDirection: 'column',
         minHeight: '230mm',
-        maxWidth: '165mm',
+        maxWidth: '150mm',
         margin: '0 auto',
         boxSizing: 'border-box',
       }}
     >
       <style>{`
         @media print {
-          @page { size: A4; margin: 15mm 22mm; }
+          @page { size: A4; margin: 15mm 25mm; }
           body { -webkit-print-color-adjust: exact; }
         }
       `}</style>
