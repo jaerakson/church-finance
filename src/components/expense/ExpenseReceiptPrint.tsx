@@ -5,8 +5,9 @@ import { lookupName, CATEGORIES } from '@/lib/constants'
 import { useLookups } from '@/lib/lookups'
 import { numberToKorean } from '@/lib/korean-number'
 
-// A4 한 페이지(내용 영역 267mm)에 맞춘 기본 칸수. 입력이 더 많으면 자동으로 늘어남.
-const DEFAULT_ROW_COUNT = 13
+// A4 한 페이지에 맞춘 기본 칸수. 브라우저가 인쇄 시 자체적으로 넣는 제목/URL/페이지번호
+// 여백까지 감안해 여유 있게 잡았음 — 입력이 더 많으면 자동으로 늘어남.
+const DEFAULT_ROW_COUNT = 9
 
 function parseAmount(v: string) {
   return Number(v.replace(/,/g, '')) || 0
@@ -44,21 +45,28 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
   return (
     <div
       className="hidden print:flex print:text-black print:bg-white"
-      style={{ fontFamily: 'serif', flexDirection: 'column', minHeight: '267mm' }}
+      style={{
+        fontFamily: 'serif',
+        flexDirection: 'column',
+        minHeight: '230mm',
+        maxWidth: '165mm',
+        margin: '0 auto',
+        boxSizing: 'border-box',
+      }}
     >
       <style>{`
         @media print {
-          @page { size: A4; margin: 15mm 20mm; }
+          @page { size: A4; margin: 15mm 22mm; }
           body { -webkit-print-color-adjust: exact; }
         }
       `}</style>
 
-      <h1 style={{ textAlign: 'center', fontSize: '22px', letterSpacing: '0.6em', fontWeight: 'bold', marginBottom: '20px' }}>
+      <h1 style={{ textAlign: 'center', fontSize: '22px', letterSpacing: '0.6em', fontWeight: 'bold', marginBottom: '14px' }}>
         지 출 결 의 서
       </h1>
 
       {/* 결재란 */}
-      <table style={{ marginLeft: 'auto', border: '1px solid #000', borderCollapse: 'collapse', marginBottom: '18px', fontSize: '13px' }}>
+      <table style={{ marginLeft: 'auto', border: '1px solid #000', borderCollapse: 'collapse', marginBottom: '12px', fontSize: '13px' }}>
         <tbody>
           <tr>
             <td style={{ border: '1px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.3em', whiteSpace: 'nowrap' }}>회 계</td>
@@ -80,7 +88,7 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
       </p>
 
       {/* 내역 테이블 */}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', marginBottom: '18px' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', marginBottom: '12px' }}>
         <thead>
           <tr>
             <th style={{ border: '1px solid #000', padding: '6px', textAlign: 'center', width: '75%', letterSpacing: '0.5em' }}>내 역</th>
@@ -105,7 +113,7 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
 
       {/* 승인 문구 + 교회명: 페이지 하단에 고정 */}
       <div style={{ marginTop: 'auto' }}>
-        <div style={{ fontSize: '14px', lineHeight: '2.2', textAlign: 'center', marginBottom: '30px' }}>
+        <div style={{ fontSize: '14px', lineHeight: '1.9', textAlign: 'center', marginBottom: '20px' }}>
           <p>상기 금액의 지출을 승인합니다.</p>
           <p>주 후&nbsp;&nbsp;{dateYear}년&nbsp;&nbsp;{dateMonth}월&nbsp;&nbsp;{dateDay}일</p>
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '8px', gap: '0px' }}>
