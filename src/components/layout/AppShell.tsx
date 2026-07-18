@@ -61,11 +61,27 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    try {
-      const saved = localStorage.getItem('theme')
-      const isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)
-      setTheme(isDark ? 'dark' : 'light')
-    } catch { /* ignore */ }
+    const updateTheme = () => {
+      try {
+        const saved = localStorage.getItem('theme')
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        const isDark = saved === 'dark' || (!saved && systemDark)
+        setTheme(isDark ? 'dark' : 'light')
+        if (isDark) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      } catch (e) {
+        // 로컬 스토리지 에러 무시
+      }
+    }
+    updateTheme()
+    // 시스템 테마 변경 감지
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => updateTheme()
+    media.addEventListener('change', handler)
+    return () => media.removeEventListener('change', handler)
   }, [])
 
   const toggleTheme = () => {
