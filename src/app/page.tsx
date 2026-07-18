@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { getMembers, getOfferings, getExpenses } from '@/lib/google-sheets'
 import { Offering, Expense } from '@/lib/types'
-import { currentYear } from '@/lib/date'
+import { currentYear, today, sundaysUpTo } from '@/lib/date'
 import YearFilter from '@/components/ui/YearFilter'
+import MissingSundayCheck, { SundayStatus } from '@/components/dashboard/MissingSundayCheck'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,16 @@ export default async function DashboardPage({ searchParams }: Props) {
   const totalExpense  = expenses.reduce((s, e)  => s + parseAmount(e.amount), 0)
   const yearlyStats   = buildYearlyStats(allOfferings, allExpenses)
 
+  // 주일 입력 체크: 선택 연도(전체면 올해)의 1월 첫 주일~오늘까지 중 헌금/지출 누락 주 탐지
+  const checkYear = selectedYear === 'all' ? defYear : selectedYear
+  const offeringDates = new Set(allOfferings.map((o) => o.date))
+  const expenseDates  = new Set(allExpenses.map((e) => e.date))
+  const sundayStatuses: SundayStatus[] = sundaysUpTo(checkYear, today()).map((date) => ({
+    date,
+    hasOffering: offeringDates.has(date),
+    hasExpense: expenseDates.has(date),
+  }))
+
   const stats = [
     { label: '총 교인 수',    value: `${members.length}명`,                               color: 'bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300',       icon: '👥' },
     { label: selectedYear === 'all' ? '누적 헌금' : `${selectedYear}년 헌금`, value: `${totalOffering.toLocaleString()}원`, color: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300', icon: '💰' },
@@ -97,6 +108,11 @@ export default async function DashboardPage({ searchParams }: Props) {
           </div>
         ))}
       </div>
+
+      {/* 주일 입력 체크 */}
+      {!error && sundayStatuses.length > 0 && (
+        <MissingSundayCheck year={checkYear} sundays={sundayStatuses} />
+      )}
 
       {/* 연도별 통계 */}
       {yearlyStats.length > 0 && (

@@ -24,14 +24,20 @@ async function getRange(sheet: string, range: string): Promise<string[][]> {
   return (res.data.values ?? []) as string[][]
 }
 
-async function appendRow(sheet: string, values: string[]): Promise<void> {
+// colEnd로 열 범위를 명시적으로 제한한다. 범위를 A:Z처럼 열어두면 Sheets API의 테이블 자동
+// 감지가 빠른 연속 저장 중 엉뚱한 열에서 시작해버리는 사고가 날 수 있다(실제 발생 이력 있음).
+async function appendRow(sheet: string, values: string[], colEnd: string): Promise<void> {
   const sheets = getSheets()
   await sheets.spreadsheets.values.append({
     spreadsheetId: SPREADSHEET_ID,
-    range: `${sheet}!A:Z`,
+    range: `${sheet}!A:${colEnd}`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [values] },
   })
+}
+
+function colLetter(n: number): string {
+  return String.fromCharCode(64 + n)
 }
 
 // 시트(탭)가 없으면 생성하고 헤더 행을 넣는다. (예산 탭 최초 사용 시)
@@ -47,7 +53,7 @@ async function ensureSheet(title: string, header: string[]): Promise<void> {
     spreadsheetId: SPREADSHEET_ID,
     requestBody: { requests: [{ addSheet: { properties: { title } } }] },
   })
-  await appendRow(title, header)
+  await appendRow(title, header, colLetter(header.length))
   ensuredSheets.add(title)
 }
 
@@ -93,7 +99,7 @@ export async function addMember(data: MemberFormData): Promise<Member> {
   const maxKey = rows.reduce((max, r) => Math.max(max, Number(r[0]) || 0), 0)
   const newKey = String(maxKey + 1)
   const row = [newKey, data.name, data.departmentKey, data.positionKey, data.phone, data.email, data.address, '', '', data.registeredAt, data.baptizedAt]
-  await appendRow(SHEETS.MEMBER, row)
+  await appendRow(SHEETS.MEMBER, row, 'K')
   // rowIndex는 추정치 (선택은 key 기준이라 이 흐름에서는 사용되지 않음)
   return {
     rowIndex: rows.length + 2,
@@ -133,7 +139,7 @@ export async function getOfferings(): Promise<Offering[]> {
 }
 
 export async function addOffering(data: OfferingFormData): Promise<void> {
-  await appendRow(SHEETS.OFFERING, [data.date, data.memberKey, data.note, data.typeKey, data.amount])
+  await appendRow(SHEETS.OFFERING, [data.date, data.memberKey, data.note, data.typeKey, data.amount], 'E')
 }
 
 export async function updateOffering(rowIndex: number, data: OfferingFormData): Promise<void> {
@@ -158,7 +164,7 @@ export async function getExpenses(): Promise<Expense[]> {
 }
 
 export async function addExpense(data: ExpenseFormData): Promise<void> {
-  await appendRow(SHEETS.EXPENSE, [data.date, data.typeKey, data.description, data.amount, data.note])
+  await appendRow(SHEETS.EXPENSE, [data.date, data.typeKey, data.description, data.amount, data.note], 'E')
 }
 
 export async function updateExpense(rowIndex: number, data: ExpenseFormData): Promise<void> {
@@ -222,7 +228,7 @@ export async function addLookupRow(kind: LookupKind, name: string, categoryKey?:
   const cfg = LOOKUP_CONFIG[kind]
   const keys = await getRange(cfg.sheet, 'A2:A')
   const maxKey = keys.reduce((m, r) => Math.max(m, Number(r[0]) || 0), 0)
-  await appendRow(cfg.sheet, buildLookupRow(cfg, String(maxKey + 1), name, categoryKey))
+  await appendRow(cfg.sheet, buildLookupRow(cfg, String(maxKey + 1), name, categoryKey), cfg.colEnd)
   invalidateLookupCache(kind)
 }
 
@@ -304,7 +310,7 @@ export async function setBudget(year: string, kind: BudgetKind, typeKey: string,
   if (idx >= 0) {
     await updateRow(SHEETS.BUDGET, idx + 2, row, 'D')
   } else {
-    await appendRow(SHEETS.BUDGET, row)
+    await appendRow(SHEETS.BUDGET, row, 'D')
   }
 }
 

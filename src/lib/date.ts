@@ -1,7 +1,10 @@
 const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'] as const
 
+// 한국 시간(KST, UTC+9) 기준 오늘 날짜(YYYY-MM-DD).
+// 배포 서버·브라우저의 타임존과 무관하게 항상 한국 날짜를 반환한다.
+// (교회는 한국에 있으므로 입력 기본 날짜·주일 체크 등 모든 '오늘'은 KST 기준)
 export function today(): string {
-  return new Date().toISOString().slice(0, 10)
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10)
 }
 
 export function currentYear(): string {
@@ -41,4 +44,23 @@ export function currentWeekRange(): { start: string; end: string } {
   end.setDate(start.getDate() + 6)
   const fmt = (dt: Date) => dt.toISOString().slice(0, 10)
   return { start: fmt(start), end: fmt(end) }
+}
+
+// 지정 연도의 1월 첫 주일부터 asOf(포함)까지의 모든 주일(YYYY-MM-DD)을 반환한다.
+// asOf 이후(미래) 주일은 제외한다. UTC 기준으로 계산해 로컬 타임존/DST 영향 없이 안정적이다.
+export function sundaysUpTo(year: string, asOf: string): string[] {
+  const y = Number(year)
+  if (!y || !asOf) return []
+  const result: string[] = []
+  const d = new Date(Date.UTC(y, 0, 1))
+  // 1월 1일 이후 첫 주일로 이동 (getUTCDay: 0=주일)
+  d.setUTCDate(d.getUTCDate() + ((7 - d.getUTCDay()) % 7))
+  for (;;) {
+    const iso = d.toISOString().slice(0, 10)
+    if (iso.slice(0, 4) !== String(y)) break // 해당 연도를 벗어남
+    if (iso > asOf) break                     // 미래 주일 제외
+    result.push(iso)
+    d.setUTCDate(d.getUTCDate() + 7)
+  }
+  return result
 }
