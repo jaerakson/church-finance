@@ -49,7 +49,9 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
         fontFamily: 'serif',
         flexDirection: 'column',
         minHeight: '230mm',
-        maxWidth: '150mm',
+        // 정수 px로 지정 — mm 등 소수점이 남는 단위를 쓰면 오른쪽 경계가 픽셀 격자에서
+        // 어긋나 테두리가 왼쪽보다 얇게(안티에일리어싱) 렌더링됨
+        maxWidth: '567px',
         margin: '0 auto',
         boxSizing: 'border-box',
       }}
@@ -66,23 +68,23 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
       </h1>
 
       {/* 결재란 */}
-      <table style={{ marginLeft: 'auto', border: '1px solid #000', borderCollapse: 'collapse', marginBottom: '12px', fontSize: '13px' }}>
+      <table style={{ marginLeft: 'auto', border: '2px solid #000', borderCollapse: 'collapse', marginBottom: '12px', fontSize: '13px' }}>
         <tbody>
           <tr>
-            <td style={{ border: '1px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.3em', whiteSpace: 'nowrap' }}>회 계</td>
-            <td style={{ border: '1px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>재정부장</td>
-            <td style={{ border: '1px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>담임목사</td>
+            <td style={{ border: '2px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.3em', whiteSpace: 'nowrap' }}>회 계</td>
+            <td style={{ border: '2px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>재정부장</td>
+            <td style={{ border: '2px solid #000', padding: '4px 18px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>담임목사</td>
           </tr>
           <tr>
-            <td style={{ border: '1px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
-            <td style={{ border: '1px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
-            <td style={{ border: '1px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
+            <td style={{ border: '2px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
+            <td style={{ border: '2px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
+            <td style={{ border: '2px solid #000', height: '50px', width: '100px' }}>&nbsp;</td>
           </tr>
         </tbody>
       </table>
 
       {/* 총액 */}
-      <p style={{ fontSize: '15px', border: '1px solid #000', padding: '8px 14px', marginBottom: '10px', textAlign: 'center' }}>
+      <p style={{ fontSize: '15px', border: '2px solid #000', padding: '8px 14px', marginBottom: '10px', textAlign: 'center' }}>
         일금 <strong style={{ letterSpacing: '0.15em' }}>{numberToKorean(total)}</strong>원정
         {'  '}(<span style={{ fontFamily: 'sans-serif' }}>{total.toLocaleString()}</span>원)
       </p>
@@ -91,22 +93,22 @@ export default function ExpenseReceiptPrint({ date, items }: Props) {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', marginBottom: '12px' }}>
         <thead>
           <tr>
-            <th style={{ border: '1px solid #000', padding: '6px', textAlign: 'center', width: '75%', letterSpacing: '0.5em' }}>내 역</th>
-            <th style={{ border: '1px solid #000', padding: '6px', textAlign: 'center', letterSpacing: '0.3em' }}>금 액</th>
+            <th style={{ border: '2px solid #000', padding: '6px', textAlign: 'center', width: '75%', letterSpacing: '0.5em' }}>내 역</th>
+            <th style={{ border: '2px solid #000', padding: '6px', textAlign: 'center', letterSpacing: '0.3em' }}>금 액</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
             <tr key={i}>
-              <td style={{ border: '1px solid #000', padding: '5px 10px', height: '28px' }}>{row.description}</td>
-              <td style={{ border: '1px solid #000', padding: '5px 10px', textAlign: 'right' }}>
+              <td style={{ border: '2px solid #000', padding: '5px 10px', height: '28px' }}>{row.description}</td>
+              <td style={{ border: '2px solid #000', padding: '5px 10px', textAlign: 'right' }}>
                 {row.amount > 0 ? row.amount.toLocaleString() : ''}
               </td>
             </tr>
           ))}
           <tr>
-            <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.4em' }}>합 계</td>
-            <td style={{ border: '1px solid #000', padding: '6px', textAlign: 'right', fontWeight: 'bold' }}>{total.toLocaleString()}</td>
+            <td style={{ border: '2px solid #000', padding: '6px', textAlign: 'center', fontWeight: 'bold', letterSpacing: '0.4em' }}>합 계</td>
+            <td style={{ border: '2px solid #000', padding: '6px', textAlign: 'right', fontWeight: 'bold' }}>{total.toLocaleString()}</td>
           </tr>
         </tbody>
       </table>
